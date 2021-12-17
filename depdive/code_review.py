@@ -3,7 +3,7 @@ from git import repo
 from package_locator.locator import get_repository_url_and_subdir
 from package_locator.common import CARGO, NPM, PYPI, COMPOSER, RUBYGEMS
 from depdive.registry_diff import get_registry_version_diff
-from depdive.repository_diff import get_diff_file_commit_mapping, AddDelData, get_repository_diff
+from depdive.repository_diff import AddDelData, get_repository_diff
 
 
 class PhantomReport:
@@ -57,13 +57,16 @@ class CodeReviewAnalysis:
             if l in d and d[l].additions > 0:
                 d[l].additions -= 1
             else:
-                phantom[l] = phantom.get(l, AddDelData(1, 0))
+                phantom[l] = phantom.get(l, AddDelData(0, 0))
+                phantom[l].additions += 1
 
         for l in registry_file_diff.removed_lines:
             if l in d and d[l].deletions > 0:
                 d[l].deletions -= 1
             else:
-                phantom[l] = phantom.get(l, AddDelData(0, 1))
+                phantom[l] = phantom.get(l, AddDelData(0, 0))
+                phantom[l].deletions += 1
+        return phantom
 
     def run_phantom_analysis(self):
         """
@@ -83,11 +86,11 @@ class CodeReviewAnalysis:
         for pf in phantom_files.keys():
             registry_diff.pop(pf, None)
 
-        print(repository_diff_data.new_version_file_list)
-
-        for pf in phantom_files.keys():
+        for pf in list(phantom_files.keys()):
             if self.get_repo_path_from_registry_path(pf) in repository_diff_data.new_version_file_list:
-                phantom_file_lines[pf] = phantom_files[pf]
+                phantom_lines = self._get_phantom_lines_in_a_file(phantom_files[pf], {})  # not in repo diff
+                if phantom_lines:
+                    phantom_file_lines[pf] = phantom_lines
                 phantom_files.pop(pf)
 
         for k in registry_diff.keys():

@@ -7,7 +7,8 @@ import os
 
 
 class ReleaseCommitNotFound(Exception):
-    pass
+    def message():
+        return "Release commit not found"
 
 
 class AddDelData:

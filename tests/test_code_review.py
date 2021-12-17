@@ -31,15 +31,41 @@ def test_code_review_nix():
 
 
 def test_code_review_acorn():
+    """test phantom files"""
     ca = CodeReviewAnalysis(NPM, "acorn", "8.5.0", "8.6.0")
     r = ca.run_phantom_analysis()
-    print(r.files)
     assert len(r.files) == 3
     assert not r.lines
 
 
 def test_code_review_lodash():
+    """test phantom files"""
     ca = CodeReviewAnalysis(NPM, "lodash", "4.17.20", "4.17.21")
     r = ca.run_phantom_analysis()
     assert len(r.files) == 14
+    assert not r.lines
+
+
+def test_code_review_tokio():
+    ca = CodeReviewAnalysis(
+        CARGO,
+        "tokio",
+        "1.8.4",
+        "1.9.0",
+    )
+    r = ca.run_phantom_analysis()
+    assert not r.files
+    assert not r.lines
+
+
+def test_code_review_quote():
+    """test phantom lines"""
+    ca = CodeReviewAnalysis(
+        CARGO,
+        "quote",
+        "1.0.9",
+        "1.0.10",
+    )
+    r = ca.run_phantom_analysis()
+    assert not r.files
     assert not r.lines

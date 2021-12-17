@@ -29,8 +29,8 @@ q = """select p.name as package, e.name as ecosystem, p.*, pu.id as update_id, p
     select package_update_id from failure
     )
     and directory is not null
-    and ecosystem_id = 1
-    limit 100"""
+    and ecosystem_id = 6
+    limit 300"""
 results = sql.execute(q)
 for item in results:
     package, ecosystem, repository, subdir, old, new, update_id = (
@@ -62,9 +62,9 @@ for item in results:
                 for l in phantom_report.lines[f].keys():
                     q = "insert into phantom_line values(%s,%s,%s,%s,%s)"
                     sql.execute(
-                        q, (update_id, f, l, phantom_report.lines[f][l]["add"], phantom_report.lines[f][l]["del"])
+                        q, (update_id, f, l, phantom_report.lines[f][l].additions, phantom_report.lines[f][l].deletions)
                     )
 
     except ReleaseCommitNotFound:
         q = "insert into failure values(%s,%s)"
-        sql.execute(q, (update_id, str(ReleaseCommitNotFound)))
+        sql.execute(q, (update_id, ReleaseCommitNotFound.message()))
