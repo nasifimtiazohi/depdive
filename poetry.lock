@@ -461,7 +461,7 @@ python-versions = "*"
 
 [[package]]
 name = "package-locator"
-version = "0.4.0"
+version = "0.4.2"
 description = "For a package, locate its source repository url and its relative path within the repository"
 category = "main"
 optional = false
@@ -1062,7 +1062,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "version-differ"
-version = "0.3.0"
+version = "0.3.2"
 description = "Accurate diffing between two versions of a project"
 category = "main"
 optional = false
@@ -1120,7 +1120,7 @@ tests = ["codecov", "scikit-build", "cmake", "ninja", "pybind11", "pytest", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "4eeecbcfcfd4127c0eedad75cba6ea0d31e3d05c97995baf5039d1ff9c80b007"
+content-hash = "08679b8753950c4c32384817d269b04e0a2b42d31e68cc906751b7146e7667b2"
 
 [metadata.files]
 alabaster = [
@@ -1475,8 +1475,8 @@ nodeenv = [
     {file = "nodeenv-1.6.0.tar.gz", hash = "sha256:3ef13ff90291ba2a4a7a4ff9a979b63ffdd00a464dbe04acf0ea6471517a4c2b"},
 ]
 package-locator = [
-    {file = "package-locator-0.4.0.tar.gz", hash = "sha256:4d9dd118dc7a2e2da9a42800a35ca9c97dc54bcad932f31022b62770f6d60a0a"},
-    {file = "package_locator-0.4.0-py3-none-any.whl", hash = "sha256:114299909aaa6b05c2d2f9afd15789061053f903c291d733ab9dbfe36767d8c9"},
+    {file = "package-locator-0.4.2.tar.gz", hash = "sha256:3dd9e2aab05308475dd99b00ccf3e1ab4cb0a3cfbd5f89ef6d5b7e1c3cc95533"},
+    {file = "package_locator-0.4.2-py3-none-any.whl", hash = "sha256:161b6030bd53e8839ea20ae6e7dbc65fee9a00ba1e8b2f48543a541d7fe57cab"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
@@ -1705,6 +1705,10 @@ rich = [
     {file = "ruamel.yaml-0.17.17.tar.gz", hash = "sha256:9751de4cbb57d4bfbf8fc394e125ed4a2f170fbff3dc3d78abf50be85924f8be"},
 ]
 "ruamel.yaml.clib" = [
+    {file = "ruamel.yaml.clib-0.2.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:6e7be2c5bcb297f5b82fee9c665eb2eb7001d1050deaba8471842979293a80b0"},
+    {file = "ruamel.yaml.clib-0.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:221eca6f35076c6ae472a531afa1c223b9c29377e62936f61bc8e6e8bdc5f9e7"},
+    {file = "ruamel.yaml.clib-0.2.6-cp310-cp310-win32.whl", hash = "sha256:1070ba9dd7f9370d0513d649420c3b362ac2d687fe78c6e888f5b12bf8bc7bee"},
+    {file = "ruamel.yaml.clib-0.2.6-cp310-cp310-win_amd64.whl", hash = "sha256:77df077d32921ad46f34816a9a16e6356d8100374579bc35e15bab5d4e9377de"},
     {file = "ruamel.yaml.clib-0.2.6-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:cfdb9389d888c5b74af297e51ce357b800dd844898af9d4a547ffc143fa56751"},
     {file = "ruamel.yaml.clib-0.2.6-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:7b2927e92feb51d830f531de4ccb11b320255ee95e791022555971c466af4527"},
     {file = "ruamel.yaml.clib-0.2.6-cp35-cp35m-win32.whl", hash = "sha256:ada3f400d9923a190ea8b59c8f60680c4ef8a4b0dfae134d2f2ff68429adfab5"},
@@ -1898,8 +1902,8 @@ urllib3 = [
     {file = "urllib3-1.26.7.tar.gz", hash = "sha256:4987c65554f7a2dbf30c18fd48778ef124af6fab771a377103da0585e2336ece"},
 ]
 version-differ = [
-    {file = "version-differ-0.3.0.tar.gz", hash = "sha256:f01fce609633822451529d76ac08e051b20be4521941ad0eb655e6f855260907"},
-    {file = "version_differ-0.3.0-py3-none-any.whl", hash = "sha256:1431617a506c0001a167af0d4e6f4295d9bcf8885dc798766dfc4963f11b2cf6"},
+    {file = "version-differ-0.3.2.tar.gz", hash = "sha256:f56f2a1d305f57cc3f573fbccc2671d49d400dffd270cfe91fde1c58c2fcf2db"},
+    {file = "version_differ-0.3.2-py3-none-any.whl", hash = "sha256:b016556aeee87097673863900bee8d9ff2f7bba91e44411645a5067261313393"},
 ]
 virtualenv = [
     {file = "virtualenv-20.10.0-py2.py3-none-any.whl", hash = "sha256:4b02e52a624336eece99c96e3ab7111f469c24ba226a53ec474e8e787b365814"},

@@ -29,7 +29,7 @@ q = """select p.name as package, e.name as ecosystem, p.*, pu.id as update_id, p
     select package_update_id from failure
     )
     and directory is not null
-    and ecosystem_id = 6
+    and ecosystem_id = 1
     limit 300"""
 results = sql.execute(q)
 for item in results:
@@ -44,25 +44,25 @@ for item in results:
     )
     print(package, ecosystem, repository, subdir, old, new, update_id)
     try:
-        cra = CodeReviewAnalysis(ecosystem, package, old, new, repository, subdir)
-        phantom_report = cra.run_phantom_analysis()
-        if not phantom_report.files:
+        ca = CodeReviewAnalysis(ecosystem, package, old, new, repository, subdir)
+        ca.map_code_to_commit()
+        if not ca.phantom_files:
             q = "insert into no_phantom_file values(%s)"
             sql.execute(q, (update_id,))
         else:
-            for f in phantom_report.files:
+            for f in ca.phantom_files.keys():
                 q = "insert into phantom_file values(%s,%s)"
                 sql.execute(q, (update_id, f))
 
-        if not phantom_report.lines:
+        if not ca.phantom_lines:
             q = "insert into no_phantom_line values(%s)"
             sql.execute(q, (update_id,))
         else:
-            for f in phantom_report.lines.keys():
-                for l in phantom_report.lines[f].keys():
+            for f in ca.phantom_lines.keys():
+                for l in ca.phantom_lines[f].keys():
                     q = "insert into phantom_line values(%s,%s,%s,%s,%s)"
                     sql.execute(
-                        q, (update_id, f, l, phantom_report.lines[f][l].additions, phantom_report.lines[f][l].deletions)
+                        q, (update_id, f, l, ca.phantom_lines[f][l].additions, ca.phantom_lines[f][l].deletions)
                     )
 
     except ReleaseCommitNotFound:

@@ -5,14 +5,10 @@ from version_differ.version_differ import get_version_diff_stats
 def get_registry_version_diff(ecosystem, package, old, new):
     diff_data = get_version_diff_stats(ecosystem, package, old, new)
 
-    # filter out deleted files
-    files = {k: v for (k, v) in diff_data.diff.items() if v.target_file}
-
     # preprocess auto-gen files respective to each registry
     if ecosystem == CARGO:
-        preprocess_cargo_crate_files(files)
+        preprocess_cargo_crate_files(diff_data.diff)
 
-    diff_data.diff = files
     return diff_data
 
 
