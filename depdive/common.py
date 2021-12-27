@@ -14,7 +14,10 @@ class LineDelta:
         self.additions -= other.additions
         self.deletions -= other.deletions
 
-    def empty(self):
+    def delta(self):
+        return self.additions - self.deletions
+
+    def is_empty(self):
         return self.additions == 0 and self.deletions == 0
 
 

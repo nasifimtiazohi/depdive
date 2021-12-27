@@ -3,13 +3,13 @@ from version_differ.version_differ import get_version_diff_stats
 
 
 def get_registry_version_diff(ecosystem, package, old, new):
-    diff_data = get_version_diff_stats(ecosystem, package, old, new)
+    version_diff = get_version_diff_stats(ecosystem, package, old, new)
 
     # preprocess auto-gen files respective to each registry
     if ecosystem == CARGO:
-        preprocess_cargo_crate_files(diff_data.diff)
+        preprocess_cargo_crate_files(version_diff.diff)
 
-    return diff_data
+    return version_diff
 
 
 def preprocess_cargo_crate_files(files):

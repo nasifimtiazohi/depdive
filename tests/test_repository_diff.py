@@ -1,6 +1,5 @@
-from depdive import common
 from depdive.repository_diff import *
-from package_locator.common import CARGO, NPM, PYPI, COMPOSER, RUBYGEMS
+from package_locator.common import CARGO, PYPI
 import tempfile
 from git import Repo
 
@@ -21,11 +20,11 @@ def get_repository_diff_stats(diff):
 
 def test_repository_diff():
     assert get_repository_diff_stats(
-        get_repository_diff(CARGO, "tokio", "https://github.com/tokio-rs/tokio", "1.8.4", "1.9.0").diff
+        RepositoryDiff(CARGO, "tokio", "https://github.com/tokio-rs/tokio", "1.8.4", "1.9.0").diff
     ) == (53, 92, 4376, 3733, 3015)
 
     assert get_repository_diff_stats(
-        get_repository_diff(
+        RepositoryDiff(
             PYPI, "package-locator", "https://github.com/nasifimtiazohi/package-locator", "0.4.0", "0.4.1"
         ).diff
     ) == (2, 10, 182, 102, 120)
@@ -43,7 +42,7 @@ def test_repository_functions():
         assert "package_locator/locator.py" not in files
 
         commit = "88a6a88c460169ccc904dcf52e9ebb1d09614c68"
-        diff_commit_mapping = get_file_history(repo_path, filepath, end_commit=commit)[0]
+        diff_commit_mapping = get_full_file_history(repo_path, filepath, end_commit=commit)[0]
         commits = set()
         for k in diff_commit_mapping.changed_lines.keys():
             commits |= set(diff_commit_mapping.changed_lines[k].keys())
@@ -63,6 +62,7 @@ def test_repository_get_commits():
         assert len(get_all_commits_on_file(repo_path, file, start_commit=start_commit)) == 5
         assert len(get_all_commits_on_file(repo_path, file, end_commit=end_commit)) == 6
         assert len(get_all_commits_on_file(repo_path, file, start_commit=start_commit, end_commit=end_commit)) == 4
+        # TODO check zero
 
         assert (
             len(
@@ -72,3 +72,68 @@ def test_repository_get_commits():
             )
             == 30
         )
+
+        uni_diff_text = get_commit_diff(repo_path, "31fa94208034cb7581a81b06045ff2cf51057b40")
+        assert uni_diff_text.split("\n") == [
+            "diff --git a/package.json b/package.json",
+            "index 822c963..6231a2c 100644",
+            "--- a/package.json",
+            "+++ b/package.json",
+            "@@ -1,6 +1,6 @@",
+            " {",
+            ' \t"name": "chalk",',
+            '-\t"version": "3.0.0",',
+            '+\t"version": "4.0.0",',
+            ' \t"description": "Terminal string styling done right",',
+            ' \t"license": "MIT",',
+            ' \t"repository": "chalk/chalk",',
+        ]
+
+        uni_diff_text = get_commit_diff(repo_path, "31fa94208034cb7581a81b06045ff2cf51057b40", reverse=True)
+        uni_diff_text.split("\n") == [
+            "diff --git a/package.json b/package.json",
+            "index 6231a2c..822c963 100644",
+            "--- a/package.json",
+            "+++ b/package.json",
+            "@@ -1,6 +1,6 @@",
+            " {",
+            ' \t"name": "chalk",',
+            '-\t"version": "4.0.0",',
+            '+\t"version": "3.0.0",',
+            ' \t"description": "Terminal string styling done right",',
+            ' \t"license": "MIT",',
+            ' \t"repository": "chalk/chalk",',
+        ]
+
+        uni_diff_text = get_commit_diff_for_file(
+            repo_path, ".editorconfig", commit="cffc3552b0853c75f41b92ed2c032988df018442"
+        )
+        d = get_diff_files(uni_diff_text)
+        lines = 0
+        for f in d.keys():
+            lines += len(d[f].changed_lines.keys())
+        assert lines == 10
+
+        uni_diff_text = get_inbetween_commit_diff_for_file(
+            repo_path,
+            "package.json",
+            "89e9e3a5b0601f4eda4c3a92acd887ec836d0175",
+            "95d74cbe8d3df3674dec1445a4608d3288d8b73c",
+        )
+        assert uni_diff_text.split("\n") == [
+            "diff --git a/package.json b/package.json",
+            "index c2d63f6..47c23f2 100644",
+            "--- a/package.json",
+            "+++ b/package.json",
+            "@@ -1,6 +1,6 @@",
+            " {",
+            ' \t"name": "chalk",',
+            '-\t"version": "4.1.1",',
+            '+\t"version": "4.1.2",',
+            ' \t"description": "Terminal string styling done right",',
+            ' \t"license": "MIT",',
+            ' \t"repository": "chalk/chalk",',
+        ]
+
+
+# TODO: get file_commit_stats for rename file
