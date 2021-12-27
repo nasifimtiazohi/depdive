@@ -117,6 +117,7 @@ def test_code_review_chalk():
 def test_code_review_safe_buffer():
     ca = CodeReviewAnalysis(NPM, "safe-buffer", "5.2.0", "5.2.1")
     ca.run_phantom_analysis()
+    print(ca.start_commit, ca.end_commit)
     assert ca.start_commit == "ae53d5b9f06eae8540ca948d14e43ca32692dd8c"
     assert ca.end_commit == "89d3d5b4abd6308c6008499520373d204ada694b"
     assert not ca.phantom_files

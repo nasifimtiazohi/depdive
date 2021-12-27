@@ -171,5 +171,5 @@ class CodeReviewAnalysis:
             if phantom_lines:
                 self.phantom_lines[f] = phantom_lines
 
-        self.start_commit = str(repository_diff.old_version_commit)
-        self.end_commit = str(repository_diff.new_version_commit)
+        self.start_commit = repository_diff.old_version_commit
+        self.end_commit = repository_diff.new_version_commit

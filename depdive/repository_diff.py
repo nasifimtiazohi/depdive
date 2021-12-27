@@ -308,9 +308,8 @@ class RepositoryDiff:
         if the immediate next commit outside the boundary on the fiven file
         does not address phantom lines, we quit.
         """
-
         new_version_commit, old_version_commit = self.new_version_commit, self.old_version_commit
-        if not new_version_commit or old_version_commit:
+        if not new_version_commit or not old_version_commit:
             return False
 
         # first take a look at the commis afterward new_version_commits
