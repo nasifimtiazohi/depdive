@@ -268,19 +268,24 @@ class RepositoryDiff:
 
         self.build_repository_diff()
 
+    def get_commit_of_release(self, version):
+        repo = Repo(self.repo_path)
+        tags = repo.tags
+        c = get_commit_of_release(tags, self.package, version)
+        if c:
+            return str(c)
+
     def build_repository_diff(self):
         if not self.repo_path:
             self._temp_dir = tempfile.TemporaryDirectory()
             self.repo_path = self._temp_dir.name
-            repo = Repo.clone_from(self.repository, self.repo_path)
+            Repo.clone_from(self.repository, self.repo_path)
 
         if not self.old_version_commit or not self.new_version_commit:
-            tags = repo.tags
-
             if not self.old_version_commit:
-                self.old_version_commit = str(get_commit_of_release(tags, self.package, self.old_version))
+                self.old_version_commit = self.get_commit_of_release(self.old_version)
             if not self.new_version_commit:
-                self.new_version_commit = str(get_commit_of_release(tags, self.package, self.new_version))
+                self.new_version_commit = self.get_commit_of_release(self.new_version)
 
             if not self.old_version_commit or not self.new_version_commit:
                 raise ReleaseCommitNotFound
@@ -305,6 +310,8 @@ class RepositoryDiff:
         """
 
         new_version_commit, old_version_commit = self.new_version_commit, self.old_version_commit
+        if not new_version_commit or old_version_commit:
+            return False
 
         # first take a look at the commis afterward new_version_commits
         commits = get_all_commits_on_file(self.repo_path, filepath, start_commit=new_version_commit)[::-1]

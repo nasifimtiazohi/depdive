@@ -89,12 +89,10 @@ class CodeReviewAnalysis:
         phantom = {}
         for l in registry_file_diff:
             if l not in p_repo_diff or registry_file_diff[l].delta() != p_repo_diff[l].delta():
-                # print(l, registry_file_diff[l].additions, registry_file_diff[l].deletions)
                 phantom[l] = LineDelta()
                 phantom[l].add(registry_file_diff[l])
                 if l in p_repo_diff:
                     phantom[l].subtract(p_repo_diff[l])
-                    # print(p_repo_diff[l].additions, p_repo_diff[l].deletions)
 
         return phantom
 

@@ -1,5 +1,8 @@
 from package_locator.common import CARGO, NPM
 from depdive.code_review import CodeReviewAnalysis
+import pytest
+
+from depdive.repository_diff import ReleaseCommitNotFound
 
 
 def test_code_review_guppy():
@@ -39,7 +42,7 @@ def test_code_review_acorn():
 
 
 def test_code_review_lodash():
-    """test phantom files"""
+    """test phantom files and lines"""
     ca = CodeReviewAnalysis(NPM, "lodash", "4.17.20", "4.17.21")
     ca.run_phantom_analysis()
     assert len(ca.phantom_files) == 14
@@ -68,7 +71,6 @@ def test_code_review_tokio_b():
 
 
 def test_code_review_quote():
-    """test phantom lines"""
     ca = CodeReviewAnalysis(
         CARGO,
         "quote",
@@ -106,7 +108,6 @@ def test_code_review_tokio_c():
 
 
 def test_code_review_chalk():
-    """test phantom files"""
     ca = CodeReviewAnalysis(NPM, "chalk", "4.1.2", "5.0.0")
     ca.run_phantom_analysis()
     assert not ca.phantom_files
@@ -123,8 +124,13 @@ def test_code_review_safe_buffer():
 
 
 def test_code_review_source_map():
-    """test phantom files"""
     ca = CodeReviewAnalysis(NPM, "source-map", "0.7.3", "0.8.0-beta.0")
     ca.run_phantom_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+
+def test_code_review_uuid():
+    with pytest.raises(ReleaseCommitNotFound):
+        ca = CodeReviewAnalysis(NPM, "uuid", "8.3.2-beta.0", "8.3.2")
+        ca.run_phantom_analysis()
