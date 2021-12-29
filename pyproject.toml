@@ -25,7 +25,7 @@ click = "^8.0.0"
 rich = "^10.3.0"
 PyYAML = "^5.4.1"
 package-locator = "^0.4.2"
-version-differ = "^0.3.2"
+version-differ = "^0.3.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"

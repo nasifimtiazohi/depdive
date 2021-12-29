@@ -135,5 +135,42 @@ def test_repository_get_commits():
             ' \t"repository": "chalk/chalk",',
         ]
 
+        c2c = git_blame(repo_path, file, end_commit)
+
+        lines = 0
+        for c in c2c.keys():
+            lines += len(c2c[c])
+        assert lines == 32
+        assert len(c2c) == 4
+
+
+def test_repository_git_blame_delete():
+    repository = "https://github.com/chalk/chalk"
+    end_commit = "4d5c4795ad24c326ae16bfe0c39c826c732716a9"
+    start_commit = "31fa94208034cb7581a81b06045ff2cf51057b40"
+    file = "package.json"
+    with tempfile.TemporaryDirectory() as repo_path:
+        Repo.clone_from(repository, repo_path)
+        c2c = git_blame_delete(repo_path, file, start_commit, end_commit)
+        lines = 0
+        for c in c2c.keys():
+            print(c2c[c])
+            lines += len(c2c[c])
+        assert lines == 24
+        assert len(c2c) == 8
+
+
+def test_repository_common_ancestor():
+    repository = "https://github.com/tokio-rs/tokio"
+    start_commit = "2273eb1"
+    end_commit = "b280c6d"
+    with tempfile.TemporaryDirectory() as repo_path:
+        Repo.clone_from(repository, repo_path)
+        assert get_common_start_point(repo_path, start_commit, end_commit) == "677107d8d9278265798c5efdc75374a25b41a4b8"
+
+        get_common_start_point(
+            repo_path, "714704253443787cc0c9a395b6d94947bcf26687", start_commit
+        ) == "714704253443787cc0c9a395b6d94947bcf26687"
+
 
 # TODO: get file_commit_stats for rename file

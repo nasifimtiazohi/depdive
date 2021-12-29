@@ -1,4 +1,5 @@
-import re
+from git import repo
+from package_locator.common import NPM
 from version_differ.version_differ import FileDiff
 from package_locator.locator import get_repository_url_and_subdir
 from depdive.common import LineDelta, process_whitespace
@@ -7,6 +8,8 @@ from depdive.repository_diff import (
     RepositoryDiff,
     SingleCommitFileChangeData,
     get_full_file_history,
+    git_blame,
+    git_blame_delete,
 )
 
 
@@ -59,10 +62,19 @@ class CodeReviewAnalysis:
         # that are only present in registry
         self.phantom_lines: dict[str, dict[str, LineDelta]] = {}
 
+        self.c2c_added_lines = {}
+        self.c2c_removed_lines = {}
+
+        self.registry_diff = {}
+
     def _locate_repository(self):
         self.repository, self.directory = get_repository_url_and_subdir(self.ecosystem, self.package)
 
     def get_repo_path_from_registry_path(self, filepath):
+        # put custom logic here
+        if self.ecosystem == NPM and self.package.startswith("@babel") and filepath.startswith("lib/"):
+            filepath = "src/" + filepath.removeprefix("lib/")
+
         subdir = self.directory.removeprefix("./").removesuffix("/")
         return subdir + "/" + filepath if subdir else filepath
 
@@ -119,7 +131,7 @@ class CodeReviewAnalysis:
 
         return lc
 
-    def run_phantom_analysis(self):
+    def map_code_to_commit(self):
         if not self.repository:
             self._locate_repository()
 
@@ -171,5 +183,46 @@ class CodeReviewAnalysis:
             if phantom_lines:
                 self.phantom_lines[f] = phantom_lines
 
+            self.registry_diff[f] = registry_file_diff
+
+        self.map_commit_to_added_lines(repository_diff, registry_diff)
+        # self.map_commit_to_removed_lines(repository_diff, registry_diff)
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
+
+    def map_commit_to_added_lines(self, repository_diff, registry_diff):
+        for f in registry_diff.diff.keys():
+            if not registry_diff.diff[f].target_file:
+                continue
+
+            repo_f = self.get_repo_path_from_registry_path(f)
+
+            c2c = git_blame(repository_diff.repo_path, repo_f, repository_diff.new_version_commit)
+
+            for commit in list(c2c.keys()):
+                if commit not in repository_diff.diff[repo_f].commits | repository_diff.diff[repo_f].reverse_commits:
+                    c2c.pop(commit)
+                else:
+                    c2c[commit] = [process_whitespace(l) for l in c2c[commit]]
+                    c2c[commit] = [l for l in c2c[commit] if l]
+
+            self.c2c_added_lines[f] = c2c
+
+    def map_commit_to_removed_lines(self, repository_diff, registry_diff):
+        for f in registry_diff.diff.keys():
+            if not registry_diff.diff[f].source_file:
+                continue
+            repo_f = self.get_repo_path_from_registry_path(f)
+            c2c = git_blame_delete(
+                repository_diff.repo_path,
+                repo_f,
+                repository_diff.common_starter_commit,
+                repository_diff.new_version_commit,
+            )
+            for k in c2c.keys():
+                c2c[k] = [process_whitespace(l) for l in c2c[k]]
+                c2c[k] = [l for l in c2c[k] if l]
+
+            # if len(c2c) != len(registry_diff.diff[f].added_lines):
+            #     print(c2c, registry_diff.diff[f].added_lines)
+            self.c2c_removed_lines[f] = c2c

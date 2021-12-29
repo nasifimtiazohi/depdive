@@ -1,7 +1,8 @@
+from package_locator.common import NotPackageRepository
+from depdive.registry_diff import VersionDifferError
 import sql
 from depdive.code_review import CodeReviewAnalysis
 from depdive.repository_diff import ReleaseCommitNotFound
-import semver
 
 # q = 'select * from package where ecosystem_id=1 and directory is not null'
 # results = sql.execute(q)
@@ -29,9 +30,10 @@ q = """select p.name as package, e.name as ecosystem, p.*, pu.id as update_id, p
     select package_update_id from failure
     )
     and directory is not null
-    and ecosystem_id = 1
-    limit 300"""
-results = sql.execute(q)
+    and p.name not like %s
+    and ecosystem_id = 6
+    limit 500"""
+results = sql.execute(q, (r"%babel%",))
 for item in results:
     package, ecosystem, repository, subdir, old, new, update_id = (
         item["package"],
@@ -45,7 +47,7 @@ for item in results:
     print(package, ecosystem, repository, subdir, old, new, update_id)
     try:
         ca = CodeReviewAnalysis(ecosystem, package, old, new, repository, subdir)
-        ca.run_phantom_analysis()
+        ca.map_code_to_commit()
         if not ca.phantom_files:
             q = "insert into no_phantom_file values(%s)"
             sql.execute(q, (update_id,))
@@ -68,3 +70,9 @@ for item in results:
     except ReleaseCommitNotFound:
         q = "insert into failure values(%s,%s)"
         sql.execute(q, (update_id, ReleaseCommitNotFound.message()))
+    except NotPackageRepository:
+        q = "insert into failure values(%s,%s)"
+        sql.execute(q, (update_id, "cannot validate package directory"))
+    except VersionDifferError:
+        q = "insert into failure values(%s,%s)"
+        sql.execute(q, (update_id, "version differ error"))

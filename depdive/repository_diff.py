@@ -1,4 +1,5 @@
 from git import Repo
+from git.objects import commit
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
 import tempfile
@@ -6,6 +7,7 @@ from os.path import join, relpath
 import os
 from package_locator.directory import locate_subdir
 from depdive.common import LineDelta, process_whitespace
+from collections import defaultdict
 
 
 class ReleaseCommitNotFound(Exception):
@@ -29,6 +31,8 @@ class MultipleCommitFileChangeData:
         self.is_rename: bool = False
         self.old_name: str = None
 
+        self.commits = set()
+        self.reverse_commits = set()
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
@@ -179,8 +183,17 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                 assert commit not in files[file].changed_lines[line]
                 files[file].changed_lines[line][commit] = diff[file].changed_lines[line]
 
+            if commit in reverse_commits:
+                files[file].reverse_commits.add(commit)
+            else:
+                files[file].commits.add(commit)
+
+    merged_files = set()  # keep track of merged file to avoid infinite recursion
+
     def recurring_merge_rename(f):
-        if files[f].is_rename and files[f].old_name in files.keys():
+        merged_files.add(f)
+        if files[f].is_rename and files[f].old_name in files.keys() and files[f].old_name not in merged_files:
+
             old_f = files[f].old_name
             files[old_f] = recurring_merge_rename(old_f)
             for l in files[old_f].changed_lines.keys():
@@ -247,6 +260,56 @@ def get_file_lines(repo_path, commit, filepath):
     return lines
 
 
+def git_blame(repo_path, filepath, commit):
+    c2c = defaultdict(list)  # commit to code
+    repo = Repo(repo_path)
+    for commit, lines in repo.blame(commit, filepath):
+        c2c[commit.hexsha] += list(lines)
+    return c2c
+
+
+def git_blame_delete(repo_path, filepath, start_commit, end_commit):
+    filelines = get_file_lines(repo_path, start_commit, filepath)
+
+    blame = []
+    cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
+        path=repo_path, start_commit=start_commit, end_commit=end_commit, fname=filepath
+    )
+    with os.popen(cmd) as process:
+        blame = process.readlines()
+
+    assert len(blame) == len(filelines)
+
+    c2c = defaultdict(list)
+
+    inbetween_commits = [start_commit] + get_doubeledot_inbetween_commits(repo_path, start_commit, end_commit)[::-1]
+
+    for i, line in enumerate(blame):
+        commit = line.split(" ")[0]
+        commit = commit.removeprefix("^")
+        assert not commit.endswith("^") and not commit.endswith("~") and not commit.startswith("~")
+        # TODO: assert valid commit
+        try:
+            # print(commit, filelines[i])
+            idx = inbetween_commits.index(commit)
+            commit = inbetween_commits[idx + 1]
+            c2c[commit] += [filelines[i]]
+        except:
+            pass
+
+    return c2c
+
+
+def get_common_start_point(repo_path, start_commit, end_commit):
+    cmd = "cd {path};git rev-parse $(git log --pretty=%H {start_commit}..{end_commit} | tail -1)^".format(
+        path=repo_path, start_commit=start_commit, end_commit=end_commit
+    )
+    with os.popen(cmd) as process:
+        lines = process.readlines()
+    assert len(lines) == 1
+    return lines[0].strip()
+
+
 class RepositoryDiff:
     def __init__(self, ecosystem, package, repository, old_version, new_version):
         self.ecosystem = ecosystem
@@ -261,6 +324,7 @@ class RepositoryDiff:
         self.old_version_commit = None
         self.new_version_commit = None
 
+        self.common_starter_commit = None
         self.diff = None  # diff across individual commits
         self.new_version_file_list = None
         self.new_version_subdir = None  # package directory at the new version commit
@@ -273,7 +337,7 @@ class RepositoryDiff:
         tags = repo.tags
         c = get_commit_of_release(tags, self.package, version)
         if c:
-            return str(c)
+            return c.hexsha
 
     def build_repository_diff(self):
         if not self.repo_path:
@@ -290,6 +354,9 @@ class RepositoryDiff:
             if not self.old_version_commit or not self.new_version_commit:
                 raise ReleaseCommitNotFound
 
+        self.common_starter_commit = get_common_start_point(
+            self.repo_path, self.old_version_commit, self.new_version_commit
+        )
         self.diff = get_diff_file_commit_mapping(self.repo_path, self.old_version_commit, self.new_version_commit)
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
         self.new_version_subdir = locate_subdir(self.ecosystem, self.package, self.repository, self.new_version_commit)
