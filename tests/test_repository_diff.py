@@ -154,7 +154,6 @@ def test_repository_git_blame_delete():
         c2c = git_blame_delete(repo_path, file, start_commit, end_commit)
         lines = 0
         for c in c2c.keys():
-            print(c2c[c])
             lines += len(c2c[c])
         assert lines == 24
         assert len(c2c) == 8

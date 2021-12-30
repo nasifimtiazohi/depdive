@@ -14,9 +14,9 @@ def test_code_review_guppy():
     assert not ca.phantom_lines
 
     cl = 0
-    for f in ca.c2c_added_lines.keys():
-        for c in ca.c2c_added_lines[f].keys():
-            cl += len(ca.c2c_added_lines[f][c])
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
 
     al = 0
     for f in ca.registry_diff.keys():
@@ -26,24 +26,18 @@ def test_code_review_guppy():
 
     assert cl == al
 
-    # lines = 0
-    # for f in ca.c2c_removed_lines.keys():
-    #     for c in ca.c2c_removed_lines[f].keys():
-    #         lines += len(ca.c2c_removed_lines[f][c])
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
 
-    # rl = 0
-    # for f in ca.registry_diff.diff.keys():
-    #     rl += len(ca.registry_diff.diff[f].removed_lines)
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
 
-    # for f in ca.registry_diff.diff.keys():
-    #     l = 0
-    #     for c in ca.c2c_removed_lines[f].keys():
-    #         l += len(ca.c2c_removed_lines[f][c])
-    #     # if len(ca.registry_diff.diff[f].removed_lines) != l:
-    #     #     print(f)
-    #     #     print(ca.c2c_removed_lines[f], ca.registry_diff.diff[f].removed_lines)
-
-    # assert lines == rl
+    assert cl == rl
 
 
 def test_code_review_tokio_a():
@@ -73,17 +67,30 @@ def test_code_review_acorn():
     assert not ca.phantom_lines
 
     cl = 0
-    for f in ca.c2c_added_lines.keys():
-        for c in ca.c2c_added_lines[f].keys():
-            cl += len(ca.c2c_added_lines[f][c])
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
 
     al = 0
     for f in ca.registry_diff.keys():
         if f not in ca.phantom_files:
             for l in ca.registry_diff[f].keys():
-                al += ca.registry_diff[f][l].additionss
+                al += ca.registry_diff[f][l].additions
 
     assert cl == al
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    assert cl == rl
 
 
 def test_code_review_lodash():
@@ -103,9 +110,9 @@ def test_code_review_lodash():
     )
 
     cl = 0
-    for f in ca.c2c_added_lines.keys():
-        for c in ca.c2c_added_lines[f].keys():
-            cl += len(ca.c2c_added_lines[f][c])
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
 
     al = 0
     for f in ca.registry_diff.keys():
@@ -116,6 +123,19 @@ def test_code_review_lodash():
     # README.md and package.json oare different in registry and repo
 
     assert cl - 4 == al - 1
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    assert cl - 4 == rl - 1
 
 
 def test_code_review_tokio_b():
@@ -142,9 +162,9 @@ def test_code_review_quote():
     assert not ca.phantom_lines
 
     cl = 0
-    for f in ca.c2c_added_lines.keys():
-        for c in ca.c2c_added_lines[f].keys():
-            cl += len(ca.c2c_added_lines[f][c])
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
 
     al = 0
     for f in ca.registry_diff.keys():
@@ -153,6 +173,95 @@ def test_code_review_quote():
                 al += ca.registry_diff[f][l].additions
 
     assert cl == al
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    assert cl == rl
+
+
+def test_code_review_syn():
+    ca = CodeReviewAnalysis(
+        CARGO,
+        "syn",
+        "1.0.83",
+        "1.0.84",
+    )
+    ca.map_code_to_commit()
+    assert not ca.phantom_files
+    assert not ca.phantom_lines
+
+    cl = 0
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
+
+    al = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                al += ca.registry_diff[f][l].additions
+
+    assert cl == al
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    assert cl == rl
+
+
+def test_code_review_minimist():
+    ca = CodeReviewAnalysis(
+        NPM,
+        "minimist",
+        "1.2.3",
+        "1.2.5",
+    )
+    ca.map_code_to_commit()
+    assert not ca.phantom_files
+    assert not ca.phantom_lines
+
+    cl = 0
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
+
+    al = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                al += ca.registry_diff[f][l].additions
+
+    assert cl == al
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    assert cl == rl
 
 
 def test_code_review_rand():
@@ -165,30 +274,6 @@ def test_code_review_rand():
     ca.map_code_to_commit()
     assert not ca.phantom_files
     assert not ca.phantom_lines
-
-    # cl = 0
-    # for f in ca.c2c_added_lines.keys():
-    #     for c in ca.c2c_added_lines[f].keys():
-    #         cl += len(ca.c2c_added_lines[f][c])
-
-    # al = 0
-    # for f in ca.registry_diff.keys():
-    #     if f not in ca.phantom_files:
-    #         for l in ca.registry_diff[f].keys():
-    #             al += ca.registry_diff[f][l].additions
-
-    # for f in ca.c2c_added_lines.keys():
-    #     a= 0
-    #     for c in ca.c2c_added_lines[f].keys():
-    #         a += len(ca.c2c_added_lines[f][c])
-    #     b = 0
-    #     for l in ca.registry_diff[f].keys():
-    #         b+= ca.registry_diff[f][l].additions
-    #     if a != b:
-    #         print(f)
-    #         print(ca.c2c_added_lines[f])
-    #         print(ca.registry_diff[f])
-    # assert cl == al
 
 
 def test_code_review_tokio_c():
@@ -218,6 +303,48 @@ def test_code_review_safe_buffer():
     assert ca.end_commit == "89d3d5b4abd6308c6008499520373d204ada694b"
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+    cl = 0
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
+
+    al = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                al += ca.registry_diff[f][l].additions
+
+    # for f in ca.registry_diff.keys():
+    #     rg = 0
+    #     if f not in ca.phantom_files:
+    #         for l in ca.registry_diff[f].keys():
+    #             rg += ca.registry_diff[f][l].additions
+    #     rp = 0
+    #     for c in ca.c2c_added_lines[f].keys():
+    #         rp += len(ca.c2c_added_lines[f][c])
+    #     if rg != rp:
+    #         print(f)
+    #         print(ca.c2c_added_lines)
+    #         for l in ca.registry_diff[f].keys():
+    #             print(l)
+    #             print(ca.registry_diff[f][l].additions)
+    #             print(ca.registry_diff[f][l].deletions)
+
+    assert cl - 1 == al
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    assert cl - 1 == rl
 
 
 def test_code_review_source_map():

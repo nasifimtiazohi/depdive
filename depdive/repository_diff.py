@@ -1,5 +1,4 @@
 from git import Repo
-from git.objects import commit
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
 import tempfile
@@ -32,7 +31,6 @@ class MultipleCommitFileChangeData:
         self.old_name: str = None
 
         self.commits = set()
-        self.reverse_commits = set()
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
@@ -117,8 +115,6 @@ def get_inbetween_commit_diff(repo_path, commit_a, commit_b):
 
 
 def get_inbetween_commit_diff_for_file(repo_path, filepath, commit_a, commit_b):
-    assert commit_a != commit_b  # assumption
-
     repo = Repo(repo_path)
     uni_diff_text = repo.git.diff(
         "{}".format(commit_a),
@@ -183,10 +179,7 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                 assert commit not in files[file].changed_lines[line]
                 files[file].changed_lines[line][commit] = diff[file].changed_lines[line]
 
-            if commit in reverse_commits:
-                files[file].reverse_commits.add(commit)
-            else:
-                files[file].commits.add(commit)
+            files[file].commits.add(commit)
 
     merged_files = set()  # keep track of merged file to avoid infinite recursion
 
@@ -212,13 +205,6 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
     return files
 
 
-def get_diff_file_commit_mapping(path, old_commit, new_commit):
-    commits = get_doubeledot_inbetween_commits(path, old_commit, new_commit)
-    reverse_commits = get_doubeledot_inbetween_commits(path, new_commit, old_commit)
-    diff_file_commit_mapping = get_commit_diff_stats_from_repo(path, commits, reverse_commits)
-    return diff_file_commit_mapping
-
-
 def get_repository_file_list(repo_path, commit):
     repo = Repo(repo_path)
     head = repo.head.object.hexsha
@@ -228,8 +214,8 @@ def get_repository_file_list(repo_path, commit):
     for root, dirs, files in os.walk(repo_path):
         for file in files:
             filelist.append(relpath(join(root, file), repo_path))
-    repo.git.checkout(head)
 
+    repo.git.checkout(head)
     return set(filelist)
 
 
@@ -255,8 +241,8 @@ def get_file_lines(repo_path, commit, filepath):
     repo.git.checkout(commit)
     with open(join(repo_path, filepath), "r") as f:
         lines = f.readlines()
-    repo.git.checkout(head)
 
+    repo.git.checkout(head)
     return lines
 
 
@@ -280,22 +266,28 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit):
 
     assert len(blame) == len(filelines)
 
-    c2c = defaultdict(list)
-
     inbetween_commits = [start_commit] + get_doubeledot_inbetween_commits(repo_path, start_commit, end_commit)[::-1]
+
+    def find_commit_idx(commit):
+        """
+        find index within inbetween commits.
+        git can act weird as it can strip some characters in the end for commit sha
+        """
+        nonlocal inbetween_commits
+        for i, c in enumerate(inbetween_commits):
+            if c.startswith(commit) or commit.startswith(c):
+                return i
+
+    c2c = defaultdict(list)
 
     for i, line in enumerate(blame):
         commit = line.split(" ")[0]
         commit = commit.removeprefix("^")
         assert not commit.endswith("^") and not commit.endswith("~") and not commit.startswith("~")
-        # TODO: assert valid commit
-        try:
-            # print(commit, filelines[i])
-            idx = inbetween_commits.index(commit)
-            commit = inbetween_commits[idx + 1]
-            c2c[commit] += [filelines[i]]
-        except:
-            pass
+        idx = find_commit_idx(commit)
+        if idx < len(inbetween_commits) - 1:
+            next_commit = inbetween_commits[idx + 1]
+            c2c[next_commit] += [filelines[i]]
 
     return c2c
 
@@ -325,6 +317,8 @@ class RepositoryDiff:
         self.new_version_commit = None
 
         self.common_starter_commit = None
+        self.commits = set()
+        self.reverse_commits = set()
         self.diff = None  # diff across individual commits
         self.new_version_file_list = None
         self.new_version_subdir = None  # package directory at the new version commit
@@ -357,7 +351,15 @@ class RepositoryDiff:
         self.common_starter_commit = get_common_start_point(
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
-        self.diff = get_diff_file_commit_mapping(self.repo_path, self.old_version_commit, self.new_version_commit)
+
+        self.commits = set(
+            get_doubeledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
+        )
+        self.reverse_commits = set(
+            get_doubeledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit)
+        )
+        self.diff = get_commit_diff_stats_from_repo(self.repo_path, list(self.commits), list(self.reverse_commits))
+
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
         self.new_version_subdir = locate_subdir(self.ecosystem, self.package, self.repository, self.new_version_commit)
         self.single_diff = get_diff_files(
