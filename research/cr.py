@@ -47,7 +47,7 @@ for item in results:
     print(package, ecosystem, repository, subdir, old, new, update_id)
     try:
         ca = CodeReviewAnalysis(ecosystem, package, old, new, repository, subdir)
-        ca.map_code_to_commit()
+        ca.run_analysis()
         if not ca.phantom_files:
             q = "insert into no_phantom_file values(%s)"
             sql.execute(q, (update_id,))

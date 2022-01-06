@@ -11,6 +11,7 @@ from depdive.repository_diff import (
     git_blame,
     git_blame_delete,
 )
+from depdive.code_review_checker import CommitReviewInfo
 
 
 class UncertainSubdir(Exception):
@@ -33,6 +34,16 @@ class LineCounter:
         self.mapped_commits: dict[str, LineCounterCommit] = {}  # each commit key maps to repo_file_name and
         self.registry_diff_error: LineDelta = None
 
+class DepdiveStats:
+    def __init__(self, reviewed_lines, non_reviewed_lines, total_commits, reviewed_commits) -> None:
+        self.reviewed_lines = reviewed_lines
+        self.non_reviewed_lines = non_reviewed_lines
+
+        self.total_commits = total_commits
+        self.reviewed_commits = reviewed_commits
+
+    def print(self):
+        print(self.reviewed_lines, self.non_reviewed_lines, self.total_commits, self.reviewed_commits)
 
 class CodeReviewAnalysis:
     def __init__(self, ecosystem, package, old_version, new_version, repository=None, directory=None):
@@ -64,11 +75,13 @@ class CodeReviewAnalysis:
         self.phantom_lines: dict[str, dict[str, LineDelta]] = {}
 
         # c2c: code to commit mapping
-        self.added_loc_to_commit_map = {}
-        self.removed_loc_to_commit_map = {}
+        self.added_loc_to_commit_map: dict[str, dict[str, list(str)]] = {}
+        self.removed_loc_to_commit_map: dict[str, dict[str, list(str)]] = {}
 
         # commit to review map
-        self.commit_review_info = {}
+        self.commit_review_info: dict[str, CommitReviewInfo] = {}
+
+        self.run_analysis()
 
     def _locate_repository(self):
         self.repository, self.directory = get_repository_url_and_subdir(self.ecosystem, self.package)
@@ -167,8 +180,10 @@ class CodeReviewAnalysis:
                 self.phantom_lines[f] = phantom_lines
 
             self.registry_diff[f] = registry_file_diff
+    
 
-    def map_code_to_commit(self):
+
+    def run_analysis(self):
         if not self.repository:
             self._locate_repository()
 
@@ -190,6 +205,12 @@ class CodeReviewAnalysis:
 
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
+
+
+        for commit in repository_diff.commits:
+            self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
+
+
 
     def map_commit_to_added_lines(self, repository_diff, registry_diff):
         for f in registry_diff.diff.keys():
@@ -234,3 +255,36 @@ class CodeReviewAnalysis:
                     c2c.pop(k)
 
             self.removed_loc_to_commit_map[f] = c2c
+    
+    def get_stats(self):
+        reviewed_lines = non_reviewed_lines = 0
+        reviewed_commits = set()
+        
+        for f in self.added_loc_to_commit_map.keys():
+            for commit in self.added_loc_to_commit_map[f].keys():
+                cur = len(self.added_loc_to_commit_map[f][commit])
+                if self.commit_review_info[commit].review_category:
+                    # print("reviewed: ", commit)
+                    reviewed_lines += cur
+                    reviewed_commits.add(commit)
+                else:   
+                    non_reviewed_lines += cur
+                    print("non-reviewed: ", commit)
+        
+        for f in self.removed_loc_to_commit_map.keys():
+            for commit in self.removed_loc_to_commit_map[f].keys():
+                cur = len(self.removed_loc_to_commit_map[f][commit])
+                if self.commit_review_info[commit].review_category:
+                    reviewed_lines += cur
+                    reviewed_commits.add(commit)
+                else:   
+                    non_reviewed_lines += cur
+                    print("non-reviewed: ", commit)
+        
+        return DepdiveStats(
+            reviewed_lines,
+            non_reviewed_lines,
+            len(self.commit_review_info),
+            len([c for c in self.commit_review_info if c.review_category])
+        )
+

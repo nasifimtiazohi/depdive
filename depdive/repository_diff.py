@@ -37,6 +37,7 @@ class MultipleCommitFileChangeData:
 def get_doubeledot_inbetween_commits(repo_path, commit_a, commit_b):
     repo = Repo(repo_path)
     commits = repo.iter_commits("{}..{}".format(commit_a, commit_b))
+    print([str(c) for c in commits])
     return [str(c) for c in commits]
 
 
