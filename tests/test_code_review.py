@@ -41,7 +41,7 @@ def test_code_review_guppy():
     stats = ca.get_stats()
     assert stats.reviewed_lines == 11
     assert stats.non_reviewed_lines == 246
-    assert stats.total_commits == 33
+    assert stats.total_commits == 14
     assert stats.reviewed_commits == 8
 
 
@@ -52,14 +52,15 @@ def test_code_review_tokio_a():
         "1.8.4",
         "1.9.0",
     )
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+    stats = ca.get_stats()
+    assert stats.non_reviewed_lines == 0
 
 
 def test_code_review_nix():
     ca = CodeReviewAnalysis(CARGO, "nix", "0.22.2", "0.23.0", "https://github.com/nix-rust/nix", "./")
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
@@ -67,7 +68,6 @@ def test_code_review_nix():
 def test_code_review_acorn():
     """test phantom files"""
     ca = CodeReviewAnalysis(NPM, "acorn", "8.5.0", "8.6.0")
-    ca.run_analysis()
     assert len(ca.phantom_files) == 3
     assert not ca.phantom_lines
 
@@ -101,7 +101,6 @@ def test_code_review_acorn():
 def test_code_review_lodash():
     """test phantom files and lines"""
     ca = CodeReviewAnalysis(NPM, "lodash", "4.17.20", "4.17.21")
-    ca.run_analysis()
     assert len(ca.phantom_files) == 14
     assert len(ca.phantom_lines) == 1
     assert len(ca.phantom_lines["README.md"]) == 2
@@ -142,6 +141,12 @@ def test_code_review_lodash():
 
     assert cl - 4 == rl - 1
 
+    stats = ca.get_stats()
+    assert stats.reviewed_lines == 58
+    assert stats.non_reviewed_lines == 14
+    assert stats.total_commits == 3
+    assert stats.reviewed_commits == 2
+
 
 def test_code_review_tokio_b():
     ca = CodeReviewAnalysis(
@@ -150,7 +155,6 @@ def test_code_review_tokio_b():
         "1.9.0",
         "1.8.4",
     )
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
@@ -162,7 +166,6 @@ def test_code_review_quote():
         "1.0.9",
         "1.0.10",
     )
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
@@ -200,7 +203,6 @@ def test_code_review_syn():
         "1.0.83",
         "1.0.84",
     )
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
@@ -238,7 +240,6 @@ def test_code_review_minimist():
         "1.2.3",
         "1.2.5",
     )
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
@@ -276,9 +277,14 @@ def test_code_review_rand():
         "0.8.3",
         "0.8.4",
     )
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+    stats = ca.get_stats()
+    assert stats.reviewed_lines == 787
+    assert stats.non_reviewed_lines == 0
+    assert stats.total_commits == 39
+    assert stats.reviewed_commits == 39
 
 
 def test_code_review_tokio_c():
@@ -292,24 +298,21 @@ def test_code_review_tokio_c():
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
-    # stats = ca.get_stats()
-    # assert stats.reviewed_lines == 448
-    # assert stats.non_reviewed_lines == 0
-    # assert stats.total_commits == 16
-    # assert stats.reviewed_commits == 12
-    # stats.print()
+    stats = ca.get_stats()
+    assert stats.reviewed_lines == 448
+    assert stats.non_reviewed_lines == 0
+    assert stats.total_commits == 12
+    assert stats.reviewed_commits == 12
 
 
 def test_code_review_chalk():
     ca = CodeReviewAnalysis(NPM, "chalk", "4.1.2", "5.0.0")
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
 
 def test_code_review_safe_buffer():
     ca = CodeReviewAnalysis(NPM, "safe-buffer", "5.2.0", "5.2.1")
-    ca.run_analysis()
     assert ca.start_commit == "ae53d5b9f06eae8540ca948d14e43ca32692dd8c"
     assert ca.end_commit == "89d3d5b4abd6308c6008499520373d204ada694b"
     assert not ca.phantom_files
@@ -325,22 +328,6 @@ def test_code_review_safe_buffer():
         if f not in ca.phantom_files:
             for l in ca.registry_diff[f].keys():
                 al += ca.registry_diff[f][l].additions
-
-    # for f in ca.registry_diff.keys():
-    #     rg = 0
-    #     if f not in ca.phantom_files:
-    #         for l in ca.registry_diff[f].keys():
-    #             rg += ca.registry_diff[f][l].additions
-    #     rp = 0
-    #     for c in ca.c2c_added_lines[f].keys():
-    #         rp += len(ca.c2c_added_lines[f][c])
-    #     if rg != rp:
-    #         print(f)
-    #         print(ca.c2c_added_lines)
-    #         for l in ca.registry_diff[f].keys():
-    #             print(l)
-    #             print(ca.registry_diff[f][l].additions)
-    #             print(ca.registry_diff[f][l].deletions)
 
     assert cl - 1 == al
 
@@ -360,7 +347,6 @@ def test_code_review_safe_buffer():
 
 def test_code_review_source_map():
     ca = CodeReviewAnalysis(NPM, "source-map", "0.7.3", "0.8.0-beta.0")
-    ca.run_analysis()
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
@@ -368,12 +354,10 @@ def test_code_review_source_map():
 def test_code_review_uuid():
     with pytest.raises(ReleaseCommitNotFound):
         ca = CodeReviewAnalysis(NPM, "uuid", "8.3.2-beta.0", "8.3.2")
-        ca.run_analysis()
 
 
 def test_code_review_babel():
     ca = CodeReviewAnalysis(NPM, "@babel/highlight", "7.14.5", "7.16.0")
-    ca.run_analysis()
     assert len(ca.phantom_files) == 1
     assert len(ca.phantom_lines) == 1
 
@@ -381,10 +365,8 @@ def test_code_review_babel():
 def test_code_review_rayon():
     with pytest.raises(ReleaseCommitNotFound):
         ca = CodeReviewAnalysis(CARGO, "rayon", "1.5.0", "1.5.1")
-        ca.run_analysis()
 
 
 def test_code_review_num_bigint():
     with pytest.raises(VersionDifferError):
         ca = CodeReviewAnalysis(CARGO, "num-bigint", "0.4.2", "0.4.3")
-        ca.run_analysis()

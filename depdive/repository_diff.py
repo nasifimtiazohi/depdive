@@ -37,7 +37,6 @@ class MultipleCommitFileChangeData:
 def get_doubeledot_inbetween_commits(repo_path, commit_a, commit_b):
     repo = Repo(repo_path)
     commits = repo.iter_commits("{}..{}".format(commit_a, commit_b))
-    print([str(c) for c in commits])
     return [str(c) for c in commits]
 
 
@@ -318,8 +317,6 @@ class RepositoryDiff:
         self.new_version_commit = None
 
         self.common_starter_commit = None
-        self.commits = set()
-        self.reverse_commits = set()
         self.diff = None  # diff across individual commits
         self.new_version_file_list = None
         self.new_version_subdir = None  # package directory at the new version commit
@@ -353,13 +350,11 @@ class RepositoryDiff:
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
-        self.commits = set(
-            get_doubeledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
+        self.diff = get_commit_diff_stats_from_repo(
+            self.repo_path,
+            get_doubeledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit),
+            get_doubeledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit),
         )
-        self.reverse_commits = set(
-            get_doubeledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit)
-        )
-        self.diff = get_commit_diff_stats_from_repo(self.repo_path, list(self.commits), list(self.reverse_commits))
 
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
         self.new_version_subdir = locate_subdir(self.ecosystem, self.package, self.repository, self.new_version_commit)

@@ -13,6 +13,9 @@ def test_cr_lodash():
     cr = CommitReviewInfo("https://github.com/lodash/lodash", "4c2e40e7a2fc5e40d4962afad0ea286dfb963da7")
     assert cr.review_category == CodeReviewCategory.DifferentMerger
 
+    cr = CommitReviewInfo("https://github.com/lodash/lodash", "3469357cff396a26c363f8c1b5a91dde28ba4b1c")
+    assert cr.review_category == CodeReviewCategory.DifferentCommitter
+
 
 def test_cr_typo3():
     cr = CommitReviewInfo("https://github.com/TYPO3/typo3", "a3e2d88ce93475b62dabf001650df2141a948f6f")
