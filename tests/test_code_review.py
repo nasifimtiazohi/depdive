@@ -5,6 +5,7 @@ from depdive.registry_diff import VersionDifferError
 from depdive.repository_diff import ReleaseCommitNotFound
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_guppy():
     ca = CodeReviewAnalysis(
         CARGO, "guppy", "0.8.0", "0.9.0", "https://github.com/facebookincubator/cargo-guppy", "./guppy"
@@ -38,11 +39,11 @@ def test_code_review_guppy():
 
     assert cl == rl
 
-    stats = ca.get_stats()
+    stats = ca.stats
     assert stats.reviewed_lines == 11
     assert stats.non_reviewed_lines == 246
-    assert stats.total_commits == 14
-    assert stats.reviewed_commits == 8
+    assert stats.total_commit_count == 14
+    assert stats.reviewed_commit_count == 8
 
 
 def test_code_review_tokio_a():
@@ -55,7 +56,7 @@ def test_code_review_tokio_a():
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
-    stats = ca.get_stats()
+    stats = ca.stats
     assert stats.non_reviewed_lines == 0
 
 
@@ -63,6 +64,13 @@ def test_code_review_nix():
     ca = CodeReviewAnalysis(CARGO, "nix", "0.22.2", "0.23.0", "https://github.com/nix-rust/nix", "./")
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+    stats = ca.stats
+    assert stats.reviewed_lines == 2076
+    assert stats.non_reviewed_lines == 297
+    assert stats.total_commit_count == 96
+    assert stats.reviewed_commit_count == 77
+    assert len(ca.removed_files_in_registry) == 43
 
 
 def test_code_review_acorn():
@@ -96,6 +104,9 @@ def test_code_review_acorn():
                 rl += ca.registry_diff[f][l].deletions
 
     assert cl == rl
+
+    stats = ca.stats
+    stats.non_reviewed_lines == 7
 
 
 def test_code_review_lodash():
@@ -141,13 +152,14 @@ def test_code_review_lodash():
 
     assert cl - 4 == rl - 1
 
-    stats = ca.get_stats()
+    stats = ca.stats
     assert stats.reviewed_lines == 58
     assert stats.non_reviewed_lines == 14
-    assert stats.total_commits == 3
-    assert stats.reviewed_commits == 2
+    assert stats.total_commit_count == 3
+    assert stats.reviewed_commit_count == 2
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_tokio_b():
     ca = CodeReviewAnalysis(
         CARGO,
@@ -157,6 +169,9 @@ def test_code_review_tokio_b():
     )
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+    stats = ca.stats
+    stats.non_reviewed_lines == 0
 
 
 def test_code_review_quote():
@@ -195,7 +210,14 @@ def test_code_review_quote():
 
     assert cl == rl
 
+    stats = ca.stats
+    assert stats.reviewed_lines == 20
+    assert stats.non_reviewed_lines == 395
+    assert stats.total_commit_count == 29
+    assert stats.reviewed_commit_count == 2
 
+
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_syn():
     ca = CodeReviewAnalysis(
         CARGO,
@@ -232,7 +254,11 @@ def test_code_review_syn():
 
     assert cl == rl
 
+    stats = ca.stats
+    stats.reviewed_lines == 0
 
+
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_minimist():
     ca = CodeReviewAnalysis(
         NPM,
@@ -269,7 +295,11 @@ def test_code_review_minimist():
 
     assert cl == rl
 
+    stats = ca.stats
+    stats.non_reviewed_lines == 0
 
+
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_rand():
     ca = CodeReviewAnalysis(
         CARGO,
@@ -280,13 +310,14 @@ def test_code_review_rand():
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
-    stats = ca.get_stats()
+    stats = ca.stats
     assert stats.reviewed_lines == 787
     assert stats.non_reviewed_lines == 0
-    assert stats.total_commits == 39
-    assert stats.reviewed_commits == 39
+    assert stats.total_commit_count == 41
+    assert stats.reviewed_commit_count == 41
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_tokio_c():
     ca = CodeReviewAnalysis(
         CARGO,
@@ -298,17 +329,23 @@ def test_code_review_tokio_c():
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
-    stats = ca.get_stats()
+    stats = ca.stats
     assert stats.reviewed_lines == 448
     assert stats.non_reviewed_lines == 0
-    assert stats.total_commits == 12
-    assert stats.reviewed_commits == 12
+    assert stats.total_commit_count == 12
+    assert stats.reviewed_commit_count == 12
 
 
 def test_code_review_chalk():
     ca = CodeReviewAnalysis(NPM, "chalk", "4.1.2", "5.0.0")
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+    stats = ca.stats
+    assert stats.reviewed_lines == 313
+    assert stats.non_reviewed_lines == 977
+    assert stats.total_commit_count == 26
+    assert stats.reviewed_commit_count == 11
 
 
 def test_code_review_safe_buffer():
@@ -343,6 +380,9 @@ def test_code_review_safe_buffer():
                 rl += ca.registry_diff[f][l].deletions
 
     assert cl - 1 == rl
+
+    stats = ca.stats
+    assert stats.non_reviewed_lines == 24
 
 
 def test_code_review_source_map():

@@ -34,7 +34,7 @@ class MultipleCommitFileChangeData:
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
-def get_doubeledot_inbetween_commits(repo_path, commit_a, commit_b):
+def get_doubledot_inbetween_commits(repo_path, commit_a, commit_b):
     repo = Repo(repo_path)
     commits = repo.iter_commits("{}..{}".format(commit_a, commit_b))
     return [str(c) for c in commits]
@@ -254,7 +254,7 @@ def git_blame(repo_path, filepath, commit):
     return c2c
 
 
-def git_blame_delete(repo_path, filepath, start_commit, end_commit):
+def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     filelines = get_file_lines(repo_path, start_commit, filepath)
 
     blame = []
@@ -266,7 +266,7 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit):
 
     assert len(blame) == len(filelines)
 
-    inbetween_commits = [start_commit] + get_doubeledot_inbetween_commits(repo_path, start_commit, end_commit)[::-1]
+    inbetween_commits = [start_commit] + get_doubledot_inbetween_commits(repo_path, start_commit, end_commit)[::-1]
 
     def find_commit_idx(commit):
         """
@@ -280,13 +280,36 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit):
 
     c2c = defaultdict(list)
 
+    def validate_removal_commit(commit, line):
+        """
+        git blame may be inaccurate in case of some bulk changes,
+        so run a validation step,
+        by checking if the commit has indeed deleted the line
+        """
+        for l in repo_diff.changed_lines.keys():
+            if process_whitespace(l) == process_whitespace(line):
+                if commit in repo_diff.changed_lines[l].keys() and repo_diff.changed_lines[l][commit].deletions > 0:
+                    return commit
+
+        for l in repo_diff.changed_lines.keys():
+            if process_whitespace(l) == process_whitespace(line):
+                for commit in repo_diff.changed_lines[l].keys():
+                    if repo_diff.changed_lines[l][commit].deletions > 0:
+                        return commit
+
     for i, line in enumerate(blame):
         commit = line.split(" ")[0]
         commit = commit.removeprefix("^")
         assert not commit.endswith("^") and not commit.endswith("~") and not commit.startswith("~")
         idx = find_commit_idx(commit)
-        if idx < len(inbetween_commits) - 1:
-            next_commit = inbetween_commits[idx + 1]
+        assert idx is not None
+        if idx == len(inbetween_commits) - 1:
+            # line still present
+            continue
+
+        next_commit = inbetween_commits[idx + 1]
+        next_commit = validate_removal_commit(next_commit, filelines[i])
+        if next_commit:
             c2c[next_commit] += [filelines[i]]
 
     return c2c
@@ -316,10 +339,12 @@ class RepositoryDiff:
         self.old_version_commit = None
         self.new_version_commit = None
 
+        self.old_version_subdir = None  # package directory at the old version commit
+        self.new_version_subdir = None  # package directory at the new version commit
+
         self.common_starter_commit = None
         self.diff = None  # diff across individual commits
         self.new_version_file_list = None
-        self.new_version_subdir = None  # package directory at the new version commit
         self.single_diff = None  # single diff from old to new
 
         self.build_repository_diff()
@@ -352,11 +377,12 @@ class RepositoryDiff:
 
         self.diff = get_commit_diff_stats_from_repo(
             self.repo_path,
-            get_doubeledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit),
-            get_doubeledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit),
+            get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit),
+            get_doubledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit),
         )
 
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
+        self.old_version_subdir = locate_subdir(self.ecosystem, self.package, self.repository, self.old_version_commit)
         self.new_version_subdir = locate_subdir(self.ecosystem, self.package, self.repository, self.new_version_commit)
         self.single_diff = get_diff_files(
             get_inbetween_commit_diff(self.repo_path, self.old_version_commit, self.new_version_commit)
@@ -372,6 +398,8 @@ class RepositoryDiff:
         Note that, we expand our commit boundary very conservatively,
         if the immediate next commit outside the boundary on the fiven file
         does not address phantom lines, we quit.
+
+        Also, if commit boundary has changed, we re-process the object
         """
         new_version_commit, old_version_commit = self.new_version_commit, self.old_version_commit
         if not new_version_commit or not old_version_commit:

@@ -20,3 +20,13 @@ def test_cr_lodash():
 def test_cr_typo3():
     cr = CommitReviewInfo("https://github.com/TYPO3/typo3", "a3e2d88ce93475b62dabf001650df2141a948f6f")
     assert cr.review_category == CodeReviewCategory.GerritReview
+
+
+def test_cr_acorn():
+    cr = CommitReviewInfo("https://github.com/acornjs/acorn", "9cff83e2d1b22c251e57f2117297029466584b92")
+    assert cr.review_category == CodeReviewCategory.DifferentMerger
+
+
+def test_cr_syn():
+    cr = CommitReviewInfo("https://github.com/dtolnay/syn", "002a247c192aa5fc841d731a93df02a675127b0e")
+    assert cr.review_category is None

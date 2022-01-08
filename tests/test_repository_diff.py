@@ -1,5 +1,5 @@
 from depdive.repository_diff import *
-from package_locator.common import CARGO, PYPI
+from package_locator.common import CARGO, PYPI, NPM
 import tempfile
 from git import Repo
 
@@ -66,7 +66,7 @@ def test_repository_get_commits():
 
         assert (
             len(
-                get_doubeledot_inbetween_commits(
+                get_doubledot_inbetween_commits(
                     repo_path, "95d74cbe8d3df3674dec1445a4608d3288d8b73c", "4d5c4795ad24c326ae16bfe0c39c826c732716a9"
                 )
             )
@@ -148,10 +148,11 @@ def test_repository_git_blame_delete():
     repository = "https://github.com/chalk/chalk"
     end_commit = "4d5c4795ad24c326ae16bfe0c39c826c732716a9"
     start_commit = "31fa94208034cb7581a81b06045ff2cf51057b40"
+    repo_diff = RepositoryDiff(NPM, "chalk", repository, "4.0.0", "5.0.0")
     file = "package.json"
     with tempfile.TemporaryDirectory() as repo_path:
         Repo.clone_from(repository, repo_path)
-        c2c = git_blame_delete(repo_path, file, start_commit, end_commit)
+        c2c = git_blame_delete(repo_path, file, start_commit, end_commit, repo_diff.diff[file])
         lines = 0
         for c in c2c.keys():
             lines += len(c2c[c])

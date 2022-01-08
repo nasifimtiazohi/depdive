@@ -20,31 +20,30 @@ class UncertainSubdir(Exception):
     pass
 
 
-class LineCounterCommit:
-    def __init__(self, commit: str):
-        self.commit: str = commit
-        self.file: str = None
-        self.change: LineDelta = None
-
-
-class LineCounter:
-    def __init__(self, line: str):
-        self.line: str = line
-        self.registry_diff: LineDelta = None  # AddDelData
-        self.mapped_commits: dict[str, LineCounterCommit] = {}  # each commit key maps to repo_file_name and
-        self.registry_diff_error: LineDelta = None
+class PackageDirectoryChanged(Exception):
+    pass
 
 
 class DepdiveStats:
-    def __init__(self, reviewed_lines, non_reviewed_lines, total_commits, reviewed_commits) -> None:
+    def __init__(
+        self,
+        reviewed_lines,
+        non_reviewed_lines,
+        reviewed_commits,
+        non_reviewed_commits,
+    ) -> None:
         self.reviewed_lines = reviewed_lines
         self.non_reviewed_lines = non_reviewed_lines
 
-        self.total_commits = total_commits
+        self.total_commit_count = len(reviewed_commits) + len(non_reviewed_commits)
+        self.reviewed_commit_count = len(reviewed_commits)
+
         self.reviewed_commits = reviewed_commits
+        self.non_reviewed_commits = non_reviewed_commits
 
     def print(self):
-        print(self.reviewed_lines, self.non_reviewed_lines, self.total_commits, self.reviewed_commits)
+        print(self.reviewed_commits, self.non_reviewed_commits)
+        print(self.reviewed_lines, self.non_reviewed_lines, self.total_commit_count, self.reviewed_commit_count)
 
 
 class CodeReviewAnalysis:
@@ -60,10 +59,11 @@ class CodeReviewAnalysis:
             self._locate_repository()
 
         # these fields will be updated after analysis is run.
-        # Is this a good design pattern?
+        # TODO: Is this a good design pattern?
 
         self.start_commit: str = None
         self.end_commit: str = None
+        self.common_starter_commit: str = None
 
         # line counter from version_differ output
         self.registry_diff = {}
@@ -71,17 +71,24 @@ class CodeReviewAnalysis:
         # Newly added phantom files:
         # files present in the registry, but not in repo
         self.phantom_files: dict[str, FileDiff] = {}
+
+        # files present in repo,
+        # but removed in the new version in the registry
+        self.removed_files_in_registry: dict[str, FileDiff] = {}
+
         # Newly added phantom lines:
         # files present in repo but contains lines
         # that are only present in registry
         self.phantom_lines: dict[str, dict[str, LineDelta]] = {}
 
-        # c2c: code to commit mapping
-        self.added_loc_to_commit_map = {}
-        self.removed_loc_to_commit_map = {}
+        # code to commit mapping
+        self.added_loc_to_commit_map: dict[str, dict[str, list(str)]] = {}
+        self.removed_loc_to_commit_map: dict[str, dict[str, list(str)]] = {}
 
         # commit to review map
         self.commit_review_info: dict[str, CommitReviewInfo] = {}
+
+        self.stats: DepdiveStats = None
 
         self.run_analysis()
 
@@ -89,7 +96,7 @@ class CodeReviewAnalysis:
         self.repository, self.directory = get_repository_url_and_subdir(self.ecosystem, self.package)
 
     def get_repo_path_from_registry_path(self, filepath):
-        # put custom logic here
+        # put custom logic here for specific packages
         if self.ecosystem == NPM and self.package.startswith("@babel") and filepath.startswith("lib/"):
             filepath = "src/" + filepath.removeprefix("lib/")
 
@@ -100,13 +107,19 @@ class CodeReviewAnalysis:
         """
         Phantom files: Files that are present in the registry,
                         but not in the source repository
+
+        Also, keep track of files that are present in the repository,
+        but have been removed in the new version
         """
-        phantom_files = {}
+
         for f in registry_diff.keys():
             repo_f = self.get_repo_path_from_registry_path(f)
+
             if registry_diff[f].target_file and repo_f not in repo_file_list:
-                phantom_files[f] = registry_diff[f]
-        self.phantom_files = phantom_files
+                self.phantom_files[f] = registry_diff[f]
+
+            elif not registry_diff[f].target_file and repo_f in repo_file_list:
+                self.removed_files_in_registry[f] = registry_diff[f]
 
     def _get_phantom_lines_in_a_file(self, registry_file_diff, repo_file_diff):
         p_repo_diff = {}
@@ -118,22 +131,13 @@ class CodeReviewAnalysis:
         phantom = {}
         for l in registry_file_diff:
             if l not in p_repo_diff or registry_file_diff[l].delta() != p_repo_diff[l].delta():
-                phantom[l] = LineDelta()
-                phantom[l].add(registry_file_diff[l])
+                phantom[l] = LineDelta(registry_file_diff[l].additions, registry_file_diff[l].deletions)
                 if l in p_repo_diff:
                     phantom[l].subtract(p_repo_diff[l])
 
         return phantom
 
-    def check_package_directory_at_new_version_point(self, subdir):
-        # TODO: will fail if directory has changed between the two versions
-        if subdir != self.directory:
-            if not subdir:
-                raise UncertainSubdir
-            else:
-                self.directory = subdir
-
-    def get_registry_file_line_counter(self, f):
+    def _get_registry_file_line_counter(self, f):
         lc = {}
         for l in [process_whitespace(l) for l in f.added_lines]:
             lc[l] = lc.get(l, LineDelta())
@@ -160,7 +164,7 @@ class CodeReviewAnalysis:
                     repository_diff.repo_path, repo_f, end_commit=repository_diff.new_version_commit
                 )
 
-            registry_file_diff = self.get_registry_file_line_counter(registry_diff.diff[f])
+            registry_file_diff = self._get_registry_file_line_counter(registry_diff.diff[f])
 
             phantom_lines = self._get_phantom_lines_in_a_file(
                 registry_file_diff, repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
@@ -183,6 +187,15 @@ class CodeReviewAnalysis:
 
             self.registry_diff[f] = registry_file_diff
 
+    def _filter_out_phantom_files(self, registry_diff):
+        for pf in self.phantom_files.keys():
+            registry_diff.diff.pop(pf, None)
+
+        for pf in self.removed_files_in_registry.keys():
+            registry_diff.diff.pop(pf, None)
+
+        return registry_diff
+
     def run_analysis(self):
         if not self.repository:
             self._locate_repository()
@@ -192,24 +205,31 @@ class CodeReviewAnalysis:
             self.ecosystem, self.package, self.repository, self.old_version, self.new_version
         )
 
-        # TODO: check subdir at common_start_point as well?
-        self.check_package_directory_at_new_version_point(repository_diff.new_version_subdir)
+        # checking package directory
+        if repository_diff.old_version_subdir != repository_diff.new_version_subdir:
+            raise PackageDirectoryChanged
+        elif not repository_diff.new_version_subdir:
+            raise UncertainSubdir
+        if repository_diff.new_version_subdir != self.directory:
+            self.directory = repository_diff.new_version_subdir
 
         self._process_phantom_files(registry_diff.diff, repository_diff.new_version_file_list)
-        for pf in self.phantom_files.keys():
-            registry_diff.diff.pop(pf, None)
+        self._filter_out_phantom_files(registry_diff)
         self._proccess_phantom_lines(registry_diff, repository_diff)
-
-        self.map_commit_to_added_lines(repository_diff, registry_diff)
-        self.map_commit_to_removed_lines(repository_diff, registry_diff)
 
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
+        self.common_starter_commit = repository_diff.common_starter_commit
+
+        self.map_commit_to_added_lines(repository_diff, registry_diff)
+        self.map_commit_to_removed_lines(repository_diff, registry_diff)
 
         for repo_f in repository_diff.diff.keys():
             for commit in repository_diff.diff[repo_f].commits:
                 if commit not in self.commit_review_info:
                     self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
+
+        self.stats = self.get_stats()
 
     def map_commit_to_added_lines(self, repository_diff, registry_diff):
         for f in registry_diff.diff.keys():
@@ -222,12 +242,11 @@ class CodeReviewAnalysis:
 
             for commit in list(c2c.keys()):
                 if commit not in repository_diff.diff[repo_f].commits:
+                    # added before the old version
                     c2c.pop(commit)
                 else:
                     c2c[commit] = [process_whitespace(l) for l in c2c[commit]]
                     c2c[commit] = [l for l in c2c[commit] if l]
-                    if not c2c[commit]:
-                        c2c.pop(commit)
 
             self.added_loc_to_commit_map[f] = c2c
 
@@ -238,7 +257,13 @@ class CodeReviewAnalysis:
 
         for f in registry_diff.diff.keys():
             repo_f = self.get_repo_path_from_registry_path(f)
-            if not registry_diff.diff[f].source_file or repo_f not in starter_point_file_list:
+            if (
+                # file may not be in the common starter point at all
+                not registry_diff.diff[f].source_file
+                or repo_f not in starter_point_file_list
+                # file may be excluded in the new version
+                or (not registry_diff.diff[f].target_file and repo_f not in repository_diff.diff.keys())
+            ):
                 continue
 
             c2c = git_blame_delete(
@@ -246,12 +271,11 @@ class CodeReviewAnalysis:
                 repo_f,
                 repository_diff.common_starter_commit,
                 repository_diff.new_version_commit,
+                repository_diff.diff[repo_f],
             )
             for k in list(c2c.keys()):
                 c2c[k] = [process_whitespace(l) for l in c2c[k]]
                 c2c[k] = [l for l in c2c[k] if l]
-                if not c2c[k]:
-                    c2c.pop(k)
 
             self.removed_loc_to_commit_map[f] = c2c
 
@@ -281,5 +305,8 @@ class CodeReviewAnalysis:
                     non_reviewed_commits.add(commit)
 
         return DepdiveStats(
-            reviewed_lines, non_reviewed_lines, len(reviewed_commits) + len(non_reviewed_commits), len(reviewed_commits)
+            reviewed_lines,
+            non_reviewed_lines,
+            reviewed_commits,
+            non_reviewed_commits,
         )

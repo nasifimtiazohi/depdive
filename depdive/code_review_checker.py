@@ -3,6 +3,8 @@ import os
 from enum import Enum
 
 BOT = "[bot]"
+# TODO: handle bots?
+GITHUB = "web-flow"
 
 
 class CodeReviewCategory(Enum):
@@ -11,14 +13,6 @@ class CodeReviewCategory(Enum):
     DifferentCommitter = 3
     GerritReview = 3
     ProwReview = 4
-
-
-class GitHubReviewInfo:
-    def __init__(self, login, state, association, date) -> None:
-        self.login: str = login
-        self.state: str = state
-        self.association: str = association
-        self.date: str = date
 
 
 class NotGitHubRepo(Exception):
@@ -48,7 +42,11 @@ class CommitReviewInfo:
         self.review_category = None
         self.github_pull_requests = []
 
-        checkers = [self.github_pr, self.different_committer, self.gerrit_review]
+        checkers = [
+            self.github_pr,
+            self.gerrit_review,
+            self.different_committer,
+        ]
         for check in checkers:
             check()
             if self.review_category:
@@ -60,13 +58,16 @@ class CommitReviewInfo:
 
             if pr.get_reviews().totalCount > 0:
                 self.review_category = CodeReviewCategory.GitHubReview
-            elif self.github_commit.author.login != pr.merged_by.login:
+            elif self.github_commit.author.login != pr.merged_by.login and pr.merged_by.login != GITHUB:
                 self.review_category = CodeReviewCategory.DifferentMerger
             elif any([l.name in ["lgtm", "approved"] for l in pr.get_labels()]):
                 self.review_category = CodeReviewCategory.ProwReview
 
     def different_committer(self):
-        if self.github_commit.author.login != self.github_commit.committer.login:
+        if (
+            self.github_commit.author.login != self.github_commit.committer.login
+            and self.github_commit.committer.login != GITHUB
+        ):
             self.review_category = CodeReviewCategory.DifferentCommitter
 
     def gerrit_review(self):
