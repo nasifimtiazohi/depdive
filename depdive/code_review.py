@@ -322,12 +322,15 @@ class CodeReviewAnalysis:
                     non_reviewed_commits.add(commit)
 
         phantom_files = len(self.phantom_files)
-        files_with_phantom_lines = len(self.phantom_lines)
+
+        files_with_phantom_lines = set()
         phantom_lines = 0
         for f in self.phantom_lines.keys():
             for l in self.phantom_lines[f].keys():
-                phantom_lines += self.phantom_lines[f][l].additions
-                phantom_lines += self.phantom_lines[f][l].deletions
+                if self.phantom_lines[f][l].additions > 0:
+                    files_with_phantom_lines.add(f)
+                    phantom_lines += self.phantom_lines[f][l].additions
+        files_with_phantom_lines = len(files_with_phantom_lines)
 
         return DepdiveStats(
             reviewed_lines,

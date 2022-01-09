@@ -154,6 +154,9 @@ def test_code_review_lodash():
     assert cl - 4 == rl - 1
 
     stats = ca.stats
+    assert stats.phantom_files == 1046
+    assert stats.files_with_phantom_lines == 1
+    assert stats.phantom_lines == 1
     assert stats.reviewed_lines == 58
     assert stats.non_reviewed_lines == 14
     assert stats.total_commit_count == 3
@@ -398,11 +401,12 @@ def test_code_review_uuid():
         ca = CodeReviewAnalysis(NPM, "uuid", "8.3.2-beta.0", "8.3.2")
 
 
-@pytest.mark.skip(reason="to limit API calls")
+# @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_babel():
     ca = CodeReviewAnalysis(NPM, "@babel/highlight", "7.14.5", "7.16.0")
     assert len(ca.phantom_files) == 2
     assert len(ca.phantom_lines) == 1
+    ca.stats.print()
 
 
 def test_code_review_rayon():
@@ -440,9 +444,8 @@ def test_code_review_numpy():
     ca = CodeReviewAnalysis(PYPI, "numpy", "1.21.4", "1.21.5")
     stats = ca.stats
     assert stats.phantom_files == 39
-    print(ca.phantom_lines)
     assert stats.files_with_phantom_lines == 1
-    assert stats.phantom_lines == 6
+    assert stats.phantom_lines == 3
     assert stats.reviewed_lines == 231
     assert stats.non_reviewed_lines == 26
     assert stats.total_commit_count == 13
@@ -485,12 +488,3 @@ def test_code_review_nltk():
     assert stats.non_reviewed_lines == 25
     assert stats.total_commit_count == 43
     assert stats.reviewed_commit_count == 33
-
-
-def test_code_review_temp():
-    ca = CodeReviewAnalysis(NPM, "lru-cache", "5.1.1", "6.0.0")
-    assert not ca.phantom_files
-    assert not ca.phantom_lines
-
-    stats = ca.stats
-    stats.print()
