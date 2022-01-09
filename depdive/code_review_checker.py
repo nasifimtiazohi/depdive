@@ -68,7 +68,9 @@ class CommitReviewInfo:
 
     def different_committer(self):
         if (
-            self.github_commit.author.login != self.github_commit.committer.login
+            self.github_commit.author
+            and self.github_commit.committer
+            and self.github_commit.author.login != self.github_commit.committer.login
             and self.github_commit.committer.login != GITHUB
         ):
             self.review_category = CodeReviewCategory.DifferentCommitter

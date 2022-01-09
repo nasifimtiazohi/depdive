@@ -485,3 +485,12 @@ def test_code_review_nltk():
     assert stats.non_reviewed_lines == 25
     assert stats.total_commit_count == 43
     assert stats.reviewed_commit_count == 33
+
+
+def test_code_review_temp():
+    ca = CodeReviewAnalysis(NPM, "lru-cache", "5.1.1", "6.0.0")
+    assert not ca.phantom_files
+    assert not ca.phantom_lines
+
+    stats = ca.stats
+    stats.print()
