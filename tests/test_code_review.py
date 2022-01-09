@@ -462,6 +462,7 @@ def test_code_review_pry():
     assert stats.reviewed_commit_count == 6
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_pundit():
     ca = CodeReviewAnalysis(RUBYGEMS, "pundit", "2.1.0", "2.1.1")
     stats = ca.stats
@@ -472,3 +473,15 @@ def test_code_review_pundit():
     assert stats.non_reviewed_lines == 186
     assert stats.total_commit_count == 42
     assert stats.reviewed_commit_count == 28
+
+
+def test_code_review_nltk():
+    ca = CodeReviewAnalysis(PYPI, "nltk", "3.6.5", "3.6.7")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 6622
+    assert stats.non_reviewed_lines == 25
+    assert stats.total_commit_count == 43
+    assert stats.reviewed_commit_count == 33
