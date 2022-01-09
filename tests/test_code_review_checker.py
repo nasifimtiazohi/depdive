@@ -30,3 +30,8 @@ def test_cr_acorn():
 def test_cr_syn():
     cr = CommitReviewInfo("https://github.com/dtolnay/syn", "002a247c192aa5fc841d731a93df02a675127b0e")
     assert cr.review_category is None
+
+
+def test_cr_pry():
+    cr = CommitReviewInfo("https://github.com/pry/pry/", "033f69b3afcce57ed8d8b68f297457d1a80b1e6c")
+    assert cr.review_category == CodeReviewCategory.DifferentMerger

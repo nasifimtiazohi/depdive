@@ -2,6 +2,10 @@ from github import Github
 import os
 from enum import Enum
 
+"""
+CORNER CASES
+"""
+
 BOT = "[bot]"
 # TODO: handle bots?
 GITHUB = "web-flow"
@@ -55,10 +59,9 @@ class CommitReviewInfo:
     def github_pr(self):
         for pr in self.github_commit.get_pulls():
             self.github_pull_requests.append(pr)
-
             if pr.get_reviews().totalCount > 0:
                 self.review_category = CodeReviewCategory.GitHubReview
-            elif self.github_commit.author.login != pr.merged_by.login and pr.merged_by.login != GITHUB:
+            elif pr.user.login != pr.merged_by.login and pr.merged_by.login != GITHUB:
                 self.review_category = CodeReviewCategory.DifferentMerger
             elif any([l.name in ["lgtm", "approved"] for l in pr.get_labels()]):
                 self.review_category = CodeReviewCategory.ProwReview

@@ -31,6 +31,9 @@ class DepdiveStats:
         non_reviewed_lines,
         reviewed_commits,
         non_reviewed_commits,
+        phantom_files,
+        files_with_phantom_lines,
+        phantome_lines,
     ) -> None:
         self.reviewed_lines = reviewed_lines
         self.non_reviewed_lines = non_reviewed_lines
@@ -41,8 +44,13 @@ class DepdiveStats:
         self.reviewed_commits = reviewed_commits
         self.non_reviewed_commits = non_reviewed_commits
 
+        self.phantom_files = phantom_files
+        self.files_with_phantom_lines = files_with_phantom_lines
+        self.phantom_lines = phantome_lines
+
     def print(self):
         print(self.reviewed_commits, self.non_reviewed_commits)
+        print(self.phantom_files, self.files_with_phantom_lines, self.phantom_lines)
         print(self.reviewed_lines, self.non_reviewed_lines, self.total_commit_count, self.reviewed_commit_count)
 
 
@@ -70,7 +78,7 @@ class CodeReviewAnalysis:
 
         # Newly added phantom files:
         # files present in the registry, but not in repo
-        self.phantom_files: dict[str, FileDiff] = {}
+        self.phantom_files: set[str] = set()
 
         # files present in repo,
         # but removed in the new version in the registry
@@ -111,15 +119,15 @@ class CodeReviewAnalysis:
         Also, keep track of files that are present in the repository,
         but have been removed in the new version
         """
-
-        for f in registry_diff.keys():
+        for f in registry_diff.new_version_filelist:
             repo_f = self.get_repo_path_from_registry_path(f)
+            if repo_f not in repo_file_list:
+                self.phantom_files.add(f)
 
-            if registry_diff[f].target_file and repo_f not in repo_file_list:
-                self.phantom_files[f] = registry_diff[f]
-
-            elif not registry_diff[f].target_file and repo_f in repo_file_list:
-                self.removed_files_in_registry[f] = registry_diff[f]
+        for f in registry_diff.diff.keys():
+            repo_f = self.get_repo_path_from_registry_path(f)
+            if not registry_diff.diff[f].target_file and repo_f in repo_file_list:
+                self.removed_files_in_registry[f] = registry_diff.diff[f]
 
     def _get_phantom_lines_in_a_file(self, registry_file_diff, repo_file_diff):
         p_repo_diff = {}
@@ -188,7 +196,7 @@ class CodeReviewAnalysis:
             self.registry_diff[f] = registry_file_diff
 
     def _filter_out_phantom_files(self, registry_diff):
-        for pf in self.phantom_files.keys():
+        for pf in self.phantom_files:
             registry_diff.diff.pop(pf, None)
 
         for pf in self.removed_files_in_registry.keys():
@@ -213,7 +221,7 @@ class CodeReviewAnalysis:
         if repository_diff.new_version_subdir != self.directory:
             self.directory = repository_diff.new_version_subdir
 
-        self._process_phantom_files(registry_diff.diff, repository_diff.new_version_file_list)
+        self._process_phantom_files(registry_diff, repository_diff.new_version_file_list)
         self._filter_out_phantom_files(registry_diff)
         self._proccess_phantom_lines(registry_diff, repository_diff)
 
@@ -233,10 +241,14 @@ class CodeReviewAnalysis:
 
     def map_commit_to_added_lines(self, repository_diff, registry_diff):
         for f in registry_diff.diff.keys():
-            if not registry_diff.diff[f].target_file:
-                continue
-
             repo_f = self.get_repo_path_from_registry_path(f)
+
+            if not registry_diff.diff[f].target_file or (
+                # ignore files with only phantom line changes
+                f in self.phantom_lines.keys()
+                and repo_f not in repository_diff.diff.keys()
+            ):
+                continue
 
             c2c = git_blame(repository_diff.repo_path, repo_f, repository_diff.new_version_commit)
 
@@ -263,6 +275,11 @@ class CodeReviewAnalysis:
                 or repo_f not in starter_point_file_list
                 # file may be excluded in the new version
                 or (not registry_diff.diff[f].target_file and repo_f not in repository_diff.diff.keys())
+                or (
+                    # ignore files with only phantom line changes
+                    f in self.phantom_lines.keys()
+                    and repo_f not in repository_diff.diff.keys()
+                )
             ):
                 continue
 
@@ -304,9 +321,18 @@ class CodeReviewAnalysis:
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
+        phantom_files = len(self.phantom_files)
+        files_with_phantom_lines = len(self.phantom_lines)
+        phantom_lines = 0
+        for f in self.phantom_lines.keys():
+            phantom_lines += len(self.phantom_lines[f])
+
         return DepdiveStats(
             reviewed_lines,
             non_reviewed_lines,
             reviewed_commits,
             non_reviewed_commits,
+            phantom_files,
+            files_with_phantom_lines,
+            phantom_lines,
         )

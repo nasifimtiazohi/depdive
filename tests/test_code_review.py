@@ -1,6 +1,7 @@
-from package_locator.common import CARGO, NPM
+from package_locator.common import CARGO, NPM, PYPI, RUBYGEMS
 from depdive.code_review import CodeReviewAnalysis
 import pytest
+from depdive.code_review_checker import CodeReviewCategory
 from depdive.registry_diff import VersionDifferError
 from depdive.repository_diff import ReleaseCommitNotFound
 
@@ -66,10 +67,11 @@ def test_code_review_nix():
     assert not ca.phantom_lines
 
     stats = ca.stats
-    assert stats.reviewed_lines == 2076
-    assert stats.non_reviewed_lines == 297
+    stats.print()
+    assert stats.reviewed_lines == 2113
+    assert stats.non_reviewed_lines == 260
     assert stats.total_commit_count == 96
-    assert stats.reviewed_commit_count == 77
+    assert stats.reviewed_commit_count == 80
     assert len(ca.removed_files_in_registry) == 43
 
 
@@ -112,7 +114,7 @@ def test_code_review_acorn():
 def test_code_review_lodash():
     """test phantom files and lines"""
     ca = CodeReviewAnalysis(NPM, "lodash", "4.17.20", "4.17.21")
-    assert len(ca.phantom_files) == 14
+    assert len(ca.phantom_files) == 1046
     assert len(ca.phantom_lines) == 1
     assert len(ca.phantom_lines["README.md"]) == 2
     assert (
@@ -385,6 +387,7 @@ def test_code_review_safe_buffer():
     assert stats.non_reviewed_lines == 24
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_source_map():
     ca = CodeReviewAnalysis(NPM, "source-map", "0.7.3", "0.8.0-beta.0")
     assert not ca.phantom_files
@@ -396,9 +399,10 @@ def test_code_review_uuid():
         ca = CodeReviewAnalysis(NPM, "uuid", "8.3.2-beta.0", "8.3.2")
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_babel():
     ca = CodeReviewAnalysis(NPM, "@babel/highlight", "7.14.5", "7.16.0")
-    assert len(ca.phantom_files) == 1
+    assert len(ca.phantom_files) == 2
     assert len(ca.phantom_lines) == 1
 
 
@@ -410,3 +414,49 @@ def test_code_review_rayon():
 def test_code_review_num_bigint():
     with pytest.raises(VersionDifferError):
         ca = CodeReviewAnalysis(CARGO, "num-bigint", "0.4.2", "0.4.3")
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_requests():
+    ca = CodeReviewAnalysis(PYPI, "requests", "2.27.0", "2.27.1")
+    print(ca.phantom_files)
+    assert not ca.phantom_files
+    assert not ca.phantom_lines
+    assert ca.stats.non_reviewed_lines == 0
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_pytest():
+    ca = CodeReviewAnalysis(PYPI, "pytest", "6.2.0", "6.2.5")
+    stats = ca.stats
+    assert stats.phantom_files == 1
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 58
+    assert stats.non_reviewed_lines == 80
+    assert stats.total_commit_count == 10
+    assert stats.reviewed_commit_count == 3
+
+
+def test_code_review_numpy():
+    ca = CodeReviewAnalysis(PYPI, "numpy", "1.21.4", "1.21.5")
+    stats = ca.stats
+    assert stats.phantom_files == 39
+    assert stats.files_with_phantom_lines == 1
+    assert stats.phantom_lines == 6
+    assert stats.reviewed_lines == 231
+    assert stats.non_reviewed_lines == 26
+    assert stats.total_commit_count == 13
+    assert stats.reviewed_commit_count == 9
+
+
+def test_code_review_pry():
+    ca = CodeReviewAnalysis(RUBYGEMS, "pry", "0.14.0", "0.14.1")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 21
+    assert stats.non_reviewed_lines == 14
+    assert stats.total_commit_count == 9
+    assert stats.reviewed_commit_count == 6
