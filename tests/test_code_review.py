@@ -460,3 +460,15 @@ def test_code_review_pry():
     assert stats.non_reviewed_lines == 14
     assert stats.total_commit_count == 9
     assert stats.reviewed_commit_count == 6
+
+
+def test_code_review_pundit():
+    ca = CodeReviewAnalysis(RUBYGEMS, "pundit", "2.1.0", "2.1.1")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 128
+    assert stats.non_reviewed_lines == 186
+    assert stats.total_commit_count == 42
+    assert stats.reviewed_commit_count == 28
