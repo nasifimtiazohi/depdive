@@ -325,7 +325,9 @@ class CodeReviewAnalysis:
         files_with_phantom_lines = len(self.phantom_lines)
         phantom_lines = 0
         for f in self.phantom_lines.keys():
-            phantom_lines += len(self.phantom_lines[f])
+            for l in self.phantom_lines[f].keys():
+                phantom_lines += self.phantom_lines[f][l].additions
+                phantom_lines += self.phantom_lines[f][l].deletions
 
         return DepdiveStats(
             reviewed_lines,

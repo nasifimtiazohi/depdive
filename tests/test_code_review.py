@@ -67,7 +67,6 @@ def test_code_review_nix():
     assert not ca.phantom_lines
 
     stats = ca.stats
-    stats.print()
     assert stats.reviewed_lines == 2113
     assert stats.non_reviewed_lines == 260
     assert stats.total_commit_count == 96
@@ -419,7 +418,6 @@ def test_code_review_num_bigint():
 @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_requests():
     ca = CodeReviewAnalysis(PYPI, "requests", "2.27.0", "2.27.1")
-    print(ca.phantom_files)
     assert not ca.phantom_files
     assert not ca.phantom_lines
     assert ca.stats.non_reviewed_lines == 0
@@ -442,6 +440,7 @@ def test_code_review_numpy():
     ca = CodeReviewAnalysis(PYPI, "numpy", "1.21.4", "1.21.5")
     stats = ca.stats
     assert stats.phantom_files == 39
+    print(ca.phantom_lines)
     assert stats.files_with_phantom_lines == 1
     assert stats.phantom_lines == 6
     assert stats.reviewed_lines == 231
@@ -475,6 +474,7 @@ def test_code_review_pundit():
     assert stats.reviewed_commit_count == 28
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_nltk():
     ca = CodeReviewAnalysis(PYPI, "nltk", "3.6.5", "3.6.7")
     stats = ca.stats
