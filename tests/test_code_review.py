@@ -1,5 +1,5 @@
 from package_locator.common import CARGO, NPM, PYPI, RUBYGEMS
-from depdive.code_review import CodeReviewAnalysis
+from depdive.code_review import CodeReviewAnalysis, UncertainSubdir
 import pytest
 from depdive.code_review_checker import CodeReviewCategory
 from depdive.registry_diff import VersionDifferError
@@ -488,3 +488,8 @@ def test_code_review_nltk():
     assert stats.non_reviewed_lines == 25
     assert stats.total_commit_count == 43
     assert stats.reviewed_commit_count == 33
+
+
+def test_code_review_pyyaml():
+    with pytest.raises(UncertainSubdir):
+        ca = CodeReviewAnalysis(PYPI, "pyyaml", "5.4.1", "6.0")

@@ -10,14 +10,9 @@ from depdive.repository_diff import (
     get_repository_file_list,
     git_blame,
     git_blame_delete,
+    UncertainSubdir,
 )
 from depdive.code_review_checker import CommitReviewInfo
-
-
-class UncertainSubdir(Exception):
-    """Cannot verify package directory at version commit"""
-
-    pass
 
 
 class PackageDirectoryChanged(Exception):

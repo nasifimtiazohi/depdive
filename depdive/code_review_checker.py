@@ -1,3 +1,4 @@
+from git import exc
 from github import Github
 import os
 from enum import Enum
@@ -9,6 +10,10 @@ CORNER CASES
 BOT = "[bot]"
 # TODO: handle bots?
 GITHUB = "web-flow"
+
+
+class GitHubTokenRateLimitExceeded(Exception):
+    pass
 
 
 class CodeReviewCategory(Enum):
@@ -51,10 +56,17 @@ class CommitReviewInfo:
             self.gerrit_review,
             self.different_committer,
         ]
-        for check in checkers:
-            check()
-            if self.review_category:
-                break
+
+        try:
+            for check in checkers:
+                check()
+                if self.review_category:
+                    break
+        except Exception as e:
+            if self.g.get_rate_limit().core.remaining == 0:
+                raise GitHubTokenRateLimitExceeded
+            else:
+                raise e
 
     def github_pr(self):
         for pr in self.github_commit.get_pulls():

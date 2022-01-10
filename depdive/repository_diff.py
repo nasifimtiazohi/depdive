@@ -9,6 +9,12 @@ from depdive.common import LineDelta, process_whitespace
 from collections import defaultdict
 
 
+class UncertainSubdir(Exception):
+    """Cannot verify package directory at version commit"""
+
+    pass
+
+
 class ReleaseCommitNotFound(Exception):
     def message():
         return "Release commit not found"
@@ -382,8 +388,16 @@ class RepositoryDiff:
         )
 
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
-        self.old_version_subdir = locate_subdir(self.ecosystem, self.package, self.repository, self.old_version_commit)
-        self.new_version_subdir = locate_subdir(self.ecosystem, self.package, self.repository, self.new_version_commit)
+
+        try:
+            self.old_version_subdir = locate_subdir(
+                self.ecosystem, self.package, self.repository, self.old_version_commit
+            )
+            self.new_version_subdir = locate_subdir(
+                self.ecosystem, self.package, self.repository, self.new_version_commit
+            )
+        except:
+            raise UncertainSubdir
         self.single_diff = get_diff_files(
             get_inbetween_commit_diff(self.repo_path, self.old_version_commit, self.new_version_commit)
         )
