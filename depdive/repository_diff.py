@@ -215,13 +215,13 @@ def get_repository_file_list(repo_path, commit):
     repo = Repo(repo_path)
     head = repo.head.object.hexsha
 
-    repo.git.checkout(commit)
+    repo.git.checkout(commit, force=True)
     filelist = []
     for root, dirs, files in os.walk(repo_path):
         for file in files:
             filelist.append(relpath(join(root, file), repo_path))
 
-    repo.git.checkout(head)
+    repo.git.checkout(head, force=True)
     return set(filelist)
 
 
@@ -244,11 +244,11 @@ def get_file_lines(repo_path, commit, filepath):
     repo = Repo(repo_path)
     head = repo.head.object.hexsha
 
-    repo.git.checkout(commit)
+    repo.git.checkout(commit, force=True)
     with open(join(repo_path, filepath), "r") as f:
         lines = f.readlines()
 
-    repo.git.checkout(head)
+    repo.git.checkout(head, force=True)
     return lines
 
 
