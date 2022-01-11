@@ -2,6 +2,7 @@ from git import exc
 from github import Github
 import os
 from enum import Enum
+import json
 
 """
 CORNER CASES
@@ -43,8 +44,9 @@ class CommitReviewInfo:
         self.repo_full_name = get_github_repo_full_name(repository)
         self.commit_sha = commit_sha
 
+
         # instantiate github api calls
-        self.g = Github(os.environ["GITHUB_TOKEN"])
+        self.g = self._get_github_caller()
         self.github_repo = self.g.get_repo(self.repo_full_name)
         self.github_commit = self.github_repo.get_commit(self.commit_sha)
 
@@ -67,6 +69,18 @@ class CommitReviewInfo:
                 raise GitHubTokenRateLimitExceeded
             else:
                 raise e
+    
+    def _get_github_caller(self):
+        token = os.environ["GITHUB_TOKEN"]
+        try:
+            tokens = json.loads(token)
+            for k in tokens.keys():
+                g = Github(token)
+                if g.get_rate_limit().core.remaining > 10:
+                    
+        except:
+            return Github(token)
+
 
     def github_pr(self):
         for pr in self.github_commit.get_pulls():
