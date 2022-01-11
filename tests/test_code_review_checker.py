@@ -1,4 +1,6 @@
 from depdive.code_review_checker import CommitReviewInfo, CodeReviewCategory
+import os
+import json
 
 
 def test_cr_tokio():
@@ -32,6 +34,10 @@ def test_cr_syn():
     assert cr.review_category is None
 
 
-def test_cr_pry():
+def test_cr_multiple_token():
+    with open("env/tokens.json", "r") as f:
+        tokens = json.load(f)
+    os.environ["GITHUB_TOKEN"] = json.dumps(tokens)
+
     cr = CommitReviewInfo("https://github.com/pry/pry/", "033f69b3afcce57ed8d8b68f297457d1a80b1e6c")
     assert cr.review_category == CodeReviewCategory.DifferentMerger

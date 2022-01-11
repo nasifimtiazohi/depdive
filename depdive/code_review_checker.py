@@ -13,7 +13,7 @@ BOT = "[bot]"
 GITHUB = "web-flow"
 
 
-class GitHubTokenRateLimitExceeded(Exception):
+class AllGitHubTokensRateLimitExceeded(Exception):
     pass
 
 
@@ -44,43 +44,48 @@ class CommitReviewInfo:
         self.repo_full_name = get_github_repo_full_name(repository)
         self.commit_sha = commit_sha
 
-
         # instantiate github api calls
         self.g = self._get_github_caller()
-        self.github_repo = self.g.get_repo(self.repo_full_name)
-        self.github_commit = self.github_repo.get_commit(self.commit_sha)
+        while True:
+            self.github_repo = self.g.get_repo(self.repo_full_name)
+            self.github_commit = self.github_repo.get_commit(self.commit_sha)
 
-        self.review_category = None
-        self.github_pull_requests = []
+            self.review_category = None
+            self.github_pull_requests = []
 
+            try:
+                self._check_code_review()
+                return
+            except Exception as e:
+                if self.g.get_rate_limit().core.remaining == 0:
+                    # loop again with a new token
+                    self.g = self._get_github_caller()
+                else:
+                    raise e
+
+    def _get_github_caller(self):
+        token = os.environ["GITHUB_TOKEN"]
+        try:
+            tokens = json.loads(token)
+            for k in tokens.keys():
+                g = Github(tokens[k])
+                if g.get_rate_limit().core.remaining > 0:
+                    return g
+            raise AllGitHubTokensRateLimitExceeded
+        except:
+            return Github(token)
+
+    def _check_code_review(self):
         checkers = [
             self.github_pr,
             self.gerrit_review,
             self.different_committer,
         ]
 
-        try:
-            for check in checkers:
-                check()
-                if self.review_category:
-                    break
-        except Exception as e:
-            if self.g.get_rate_limit().core.remaining == 0:
-                raise GitHubTokenRateLimitExceeded
-            else:
-                raise e
-    
-    def _get_github_caller(self):
-        token = os.environ["GITHUB_TOKEN"]
-        try:
-            tokens = json.loads(token)
-            for k in tokens.keys():
-                g = Github(token)
-                if g.get_rate_limit().core.remaining > 10:
-                    
-        except:
-            return Github(token)
-
+        for check in checkers:
+            check()
+            if self.review_category:
+                break
 
     def github_pr(self):
         for pr in self.github_commit.get_pulls():
