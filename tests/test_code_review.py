@@ -512,6 +512,7 @@ def test_code_review_excon():
 def test_code_review_deepmerge():
     ca = CodeReviewAnalysis(NPM, "deepmerge", "4.2.1", "4.2.2")
     stats = ca.stats
+    print(ca.phantom_lines)
     assert stats.phantom_files == 2
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0

@@ -439,6 +439,7 @@ class RepositoryDiff:
                             commit_outside_boundary = False
                 if commit_outside_boundary or not phantom_lines:
                     break
+        print(new_version_commit)
 
         commits = get_all_commits_on_file(self.repo_path, filepath, start_commit=old_version_commit)[::-1]
         if commits:
@@ -469,7 +470,7 @@ class RepositoryDiff:
                 self.new_version_commit = new_version_commit
             else:
                 idx = after_commits.index(self.new_version_commit)
-                if idx < len(commits) - 1:
+                if idx < len(after_commits) - 1:
                     self.new_version_commit = after_commits[idx + 1]
 
             after_commits = get_doubledot_inbetween_commits(self.repo_path, old_version_commit)[::-1]
@@ -477,7 +478,7 @@ class RepositoryDiff:
                 self.old_version_commit = old_version_commit
             else:
                 idx = after_commits.index(self.old_version_commit)
-                if idx < len(commits) - 1:
+                if idx < len(after_commits) - 1:
                     self.old_version_commit = after_commits[idx + 1]
 
             self.build_repository_diff()
