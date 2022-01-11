@@ -525,3 +525,9 @@ def test_code_review_deepmerge():
 def test_code_review_xmlbuilder():
     ca = CodeReviewAnalysis(NPM, "xmlbuilder", "15.1.0", "15.1.1")
     ca.stats.print()
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_temp():
+    ca = CodeReviewAnalysis(CARGO, "tokio", "1.14.0", "1.15.0")
+    assert not ca.phantom_lines
