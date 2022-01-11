@@ -92,7 +92,7 @@ class CommitReviewInfo:
             self.github_pull_requests.append(pr)
             if pr.get_reviews().totalCount > 0:
                 self.review_category = CodeReviewCategory.GitHubReview
-            elif pr.user.login != pr.merged_by.login and pr.merged_by.login != GITHUB:
+            elif pr.user and pr.merged_by and pr.user.login != pr.merged_by.login and pr.merged_by.login != GITHUB:
                 self.review_category = CodeReviewCategory.DifferentMerger
             elif any([l.name in ["lgtm", "approved"] for l in pr.get_labels()]):
                 self.review_category = CodeReviewCategory.ProwReview
