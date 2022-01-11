@@ -490,6 +490,20 @@ def test_code_review_nltk():
     assert stats.reviewed_commit_count == 33
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_pyyaml():
     with pytest.raises(UncertainSubdir):
         ca = CodeReviewAnalysis(PYPI, "pyyaml", "5.4.1", "6.0")
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_excon():
+    ca = CodeReviewAnalysis(RUBYGEMS, "excon", "0.9.5", "0.9.6")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 27
+    assert stats.non_reviewed_lines == 143
+    assert stats.total_commit_count == 12
+    assert stats.reviewed_commit_count == 5
