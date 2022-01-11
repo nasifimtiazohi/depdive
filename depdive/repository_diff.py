@@ -396,6 +396,7 @@ class RepositoryDiff:
                 self.ecosystem, self.package, self.repository, self.new_version_commit
             )
         except:
+            self._temp_dir.cleanup()
             raise UncertainSubdir
         self.single_diff = get_diff_files(
             get_inbetween_commit_diff(self.repo_path, self.old_version_commit, self.new_version_commit)
