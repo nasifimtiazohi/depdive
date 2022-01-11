@@ -40,7 +40,7 @@ class MultipleCommitFileChangeData:
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
-def get_doubledot_inbetween_commits(repo_path, commit_a, commit_b):
+def get_doubledot_inbetween_commits(repo_path, commit_a, commit_b=""):
     repo = Repo(repo_path)
     commits = repo.iter_commits("{}..{}".format(commit_a, commit_b))
     return [str(c) for c in commits]
@@ -170,7 +170,6 @@ def get_diff_files(uni_diff_text):
 
 def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
     files = {}
-
     for commit in commits + reverse_commits:
         diff = get_diff_files(get_commit_diff(repo_path, commit, reverse=commit in reverse_commits))
         for file in diff.keys():
@@ -415,6 +414,7 @@ class RepositoryDiff:
 
         Also, if commit boundary has changed, we re-process the object
         """
+
         new_version_commit, old_version_commit = self.new_version_commit, self.old_version_commit
         if not new_version_commit or not old_version_commit:
             return False
@@ -436,7 +436,6 @@ class RepositoryDiff:
                                 phantom_lines.pop(p_line)
                             new_version_commit = commit
                             commit_outside_boundary = False
-
                 if commit_outside_boundary or not phantom_lines:
                     break
 
@@ -461,7 +460,19 @@ class RepositoryDiff:
                     break
 
         if new_version_commit != self.new_version_commit or old_version_commit != self.old_version_commit:
-            self.new_version_commit, self.old_version_commit = new_version_commit, old_version_commit
+            # get new version commit
+            # however, the next commit can be from another branch
+            # was merged with cur new version commit afterwards
+            # if that's the case we want the merge commit
+            after_commits = get_doubledot_inbetween_commits(self.repo_path, new_version_commit)[::-1]
+            if self.new_version_commit not in after_commits:
+                self.new_version_commit = new_version_commit
+            else:
+                idx = after_commits.index(self.new_version_commit)
+                if idx < len(commits) - 1:
+                    self.new_version_commit = after_commits[idx + 1]
+
+            self.old_version_commit = old_version_commit
             self.build_repository_diff()
             return True
         else:

@@ -507,3 +507,21 @@ def test_code_review_excon():
     assert stats.non_reviewed_lines == 143
     assert stats.total_commit_count == 12
     assert stats.reviewed_commit_count == 5
+
+
+def test_code_review_deepmerge():
+    ca = CodeReviewAnalysis(NPM, "deepmerge", "4.2.1", "4.2.2")
+    stats = ca.stats
+    assert stats.phantom_files == 2
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 0
+    assert stats.non_reviewed_lines == 39
+    assert stats.total_commit_count == 5
+    assert stats.reviewed_commit_count == 0
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_xmlbuilder():
+    ca = CodeReviewAnalysis(NPM, "xmlbuilder", "15.1.0", "15.1.1")
+    ca.stats.print()
