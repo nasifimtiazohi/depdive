@@ -1,4 +1,5 @@
 from sys import version
+from git import exc
 from package_locator.common import CARGO, PYPI
 from version_differ.common import PIP
 from version_differ.version_differ import get_version_diff_stats
@@ -12,7 +13,10 @@ def get_registry_version_diff(ecosystem, package, old, new):
     if ecosystem == PYPI:
         ecosystem = PIP
 
-    version_diff = get_version_diff_stats(ecosystem, package, old, new)
+    try:
+        version_diff = get_version_diff_stats(ecosystem, package, old, new)
+    except:
+        raise VersionDifferError
 
     # preprocess auto-gen files respective to each registry
     if ecosystem == CARGO:
