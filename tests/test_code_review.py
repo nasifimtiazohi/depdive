@@ -409,11 +409,6 @@ def test_code_review_babel():
     ca.stats.print()
 
 
-def test_code_review_rayon():
-    with pytest.raises(ReleaseCommitNotFound):
-        ca = CodeReviewAnalysis(CARGO, "rayon", "1.5.0", "1.5.1")
-
-
 def test_code_review_num_bigint():
     with pytest.raises(VersionDifferError):
         ca = CodeReviewAnalysis(CARGO, "num-bigint", "0.4.2", "0.4.3")
@@ -563,3 +558,7 @@ def test_code_review_temp():
 def test_code_review_chrome():
     with pytest.raises(GitHubAPIUnknownObject):
         ca = CodeReviewAnalysis(NPM, "chrome-trace-event", "1.0.2", "1.0.3")
+
+
+def test_code_review_cycler():
+    ca = CodeReviewAnalysis(PYPI, "cycler", "0.9.0", "0.11.0")

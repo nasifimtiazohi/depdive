@@ -331,7 +331,9 @@ def get_common_start_point(repo_path, start_commit, end_commit):
 
 
 class RepositoryDiff:
-    def __init__(self, ecosystem, package, repository, old_version, new_version):
+    def __init__(
+        self, ecosystem, package, repository, old_version, new_version, old_version_commit=None, new_version_commit=None
+    ):
         self.ecosystem = ecosystem
         self.package = package
         self.repository = repository
@@ -341,8 +343,8 @@ class RepositoryDiff:
         self._temp_dir = None
         self.repo_path = None
 
-        self.old_version_commit = None
-        self.new_version_commit = None
+        self.old_version_commit = old_version_commit
+        self.new_version_commit = new_version_commit
 
         self.old_version_subdir = None  # package directory at the old version commit
         self.new_version_subdir = None  # package directory at the new version commit
