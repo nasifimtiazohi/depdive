@@ -4,6 +4,9 @@ import os
 from enum import Enum
 import json
 
+import github
+from github.GithubException import GithubException
+
 """
 CORNER CASES
 """
@@ -17,7 +20,7 @@ class AllGitHubTokensRateLimitExceeded(Exception):
     pass
 
 
-class GitHubAPIFailure:
+class GitHubAPIUnknownObject(Exception):
     pass
 
 
@@ -54,8 +57,8 @@ class CommitReviewInfo:
             self.github_repo = self.g.get_repo(self.repo_full_name)
             try:
                 self.github_commit = self.github_repo.get_commit(self.commit_sha)
-            except:
-                raise GitHubAPIFailure
+            except github.UnknownObjectException:
+                raise GitHubAPIUnknownObject
 
             self.review_category = None
             self.github_pull_requests = []
@@ -63,12 +66,12 @@ class CommitReviewInfo:
             try:
                 self._check_code_review()
                 return
-            except Exception as e:
+            except github.RateLimitExceededException:
                 if self.g.get_rate_limit().core.remaining == 0:
                     # loop again with a new token
                     self.g = self._get_github_caller()
-                else:
-                    raise e
+            except github.UnknownObjectException:
+                raise GitHubAPIUnknownObject
 
     def _get_github_caller(self):
         token = os.environ["GITHUB_TOKEN"]

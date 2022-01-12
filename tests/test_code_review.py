@@ -1,7 +1,7 @@
 from package_locator.common import CARGO, NPM, PYPI, RUBYGEMS
 from depdive.code_review import CodeReviewAnalysis, UncertainSubdir
 import pytest
-from depdive.code_review_checker import CodeReviewCategory
+from depdive.code_review_checker import CodeReviewCategory, GitHubAPIUnknownObject
 from depdive.registry_diff import VersionDifferError
 from depdive.repository_diff import ReleaseCommitNotFound
 
@@ -558,3 +558,8 @@ def test_code_review_temp():
     assert stats.non_reviewed_lines == 2
     assert stats.total_commit_count == 3
     assert stats.reviewed_commit_count == 1
+
+
+def test_code_review_chrome():
+    with pytest.raises(GitHubAPIUnknownObject):
+        ca = CodeReviewAnalysis(NPM, "chrome-trace-event", "1.0.2", "1.0.3")
