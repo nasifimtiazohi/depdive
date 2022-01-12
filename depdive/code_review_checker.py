@@ -17,6 +17,10 @@ class AllGitHubTokensRateLimitExceeded(Exception):
     pass
 
 
+class GitHubAPIFailure:
+    pass
+
+
 class CodeReviewCategory(Enum):
     GitHubReview = 1
     DifferentMerger = 2
@@ -48,7 +52,10 @@ class CommitReviewInfo:
         self.g = self._get_github_caller()
         while True:
             self.github_repo = self.g.get_repo(self.repo_full_name)
-            self.github_commit = self.github_repo.get_commit(self.commit_sha)
+            try:
+                self.github_commit = self.github_repo.get_commit(self.commit_sha)
+            except:
+                raise GitHubAPIFailure
 
             self.review_category = None
             self.github_pull_requests = []

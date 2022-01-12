@@ -545,3 +545,16 @@ def test_code_review_registry():
     assert stats.non_reviewed_lines == 3
     assert stats.total_commit_count == 4
     assert stats.reviewed_commit_count == 2
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_temp():
+    ca = CodeReviewAnalysis(CARGO, "which", "4.2.1", "4.2.2")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 2
+    assert stats.non_reviewed_lines == 2
+    assert stats.total_commit_count == 3
+    assert stats.reviewed_commit_count == 1
