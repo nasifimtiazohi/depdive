@@ -57,6 +57,11 @@ class CommitReviewInfo:
             self.github_repo = self.g.get_repo(self.repo_full_name)
             try:
                 self.github_commit = self.github_repo.get_commit(self.commit_sha)
+            except github.RateLimitExceededException:
+                if self.g.get_rate_limit().core.remaining == 0:
+                    # loop again with a new token
+                    self.g = self._get_github_caller()
+                    continue
             except github.UnknownObjectException:
                 raise GitHubAPIUnknownObject
 
