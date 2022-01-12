@@ -529,6 +529,19 @@ def test_code_review_xmlbuilder():
 
 
 @pytest.mark.skip(reason="to limit API calls")
-def test_code_review_temp():
+def test_code_review_tokio_d():
     ca = CodeReviewAnalysis(CARGO, "tokio", "1.14.0", "1.15.0")
     assert not ca.phantom_lines
+
+
+def test_code_review_registry():
+    ca = CodeReviewAnalysis(CARGO, "signal-hook-registry", "1.3.0", "1.4.0")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    # phantom line was actually in the old version
+    assert stats.files_with_phantom_lines == 1
+    assert stats.phantom_lines == 1
+    assert stats.reviewed_lines == 5
+    assert stats.non_reviewed_lines == 3
+    assert stats.total_commit_count == 4
+    assert stats.reviewed_commit_count == 2
