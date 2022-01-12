@@ -20,6 +20,10 @@ class ReleaseCommitNotFound(Exception):
         return "Release commit not found"
 
 
+class GitError(Exception):
+    pass
+
+
 class SingleCommitFileChangeData:
     def __init__(self, file=None):
         self.source_file: str = file
@@ -321,13 +325,21 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
 
 
 def get_common_start_point(repo_path, start_commit, end_commit):
-    cmd = "cd {path};git rev-parse $(git log --pretty=%H {start_commit}..{end_commit} | tail -1)^".format(
-        path=repo_path, start_commit=start_commit, end_commit=end_commit
-    )
-    with os.popen(cmd) as process:
-        lines = process.readlines()
-    assert len(lines) == 1
-    return lines[0].strip()
+    try:
+        cmd = "cd {path};git rev-parse $(git log --pretty=%H {start_commit}..{end_commit} | tail -1)^".format(
+            path=repo_path, start_commit=start_commit, end_commit=end_commit
+        )
+        with os.popen(cmd) as process:
+            lines = process.readlines()
+        assert len(lines) == 1
+        ca = lines[0].strip()
+
+        for c in ["~", "^", "!"]:
+            assert c not in ca
+
+        return ca
+    except:
+        raise GitError
 
 
 class RepositoryDiff:
@@ -381,11 +393,6 @@ class RepositoryDiff:
         self.common_starter_commit = get_common_start_point(
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
-        # below is debugging code
-        for c in ["~", "^", "!"]:
-            if c in self.common_starter_commit:
-                print(self.old_version_commit, self.new_version_commit, self.common_starter_commit)
-                raise Exception
 
         self.diff = get_commit_diff_stats_from_repo(
             self.repo_path,

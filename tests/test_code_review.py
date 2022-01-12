@@ -3,7 +3,7 @@ from depdive.code_review import CodeReviewAnalysis, UncertainSubdir
 import pytest
 from depdive.code_review_checker import CodeReviewCategory, GitHubAPIUnknownObject
 from depdive.registry_diff import VersionDifferError
-from depdive.repository_diff import ReleaseCommitNotFound
+from depdive.repository_diff import GitError, ReleaseCommitNotFound
 
 
 @pytest.mark.skip(reason="to limit API calls")
@@ -564,3 +564,8 @@ def test_code_review_chrome():
 def test_code_review_cycler():
     # sometimes fails
     ca = CodeReviewAnalysis(PYPI, "cycler", "0.9.0", "0.11.0")
+
+
+def test_code_review_signature():
+    with pytest.raises(GitError):
+        ca = CodeReviewAnalysis(CARGO, "signature", "1.3.2", "1.4.0")
