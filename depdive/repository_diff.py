@@ -381,6 +381,11 @@ class RepositoryDiff:
         self.common_starter_commit = get_common_start_point(
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
+        # below is debugging code
+        for c in ["~", "^", "!"]:
+            if c in self.common_starter_commit:
+                print(self.old_version_commit, self.new_version_commit, self.common_starter_commit)
+                raise Exception
 
         self.diff = get_commit_diff_stats_from_repo(
             self.repo_path,
