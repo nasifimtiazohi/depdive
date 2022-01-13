@@ -1,3 +1,4 @@
+from unittest.util import _PLACEHOLDER_LEN
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
@@ -265,6 +266,14 @@ def git_blame(repo_path, filepath, commit):
 
 def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     filelines = get_file_lines(repo_path, start_commit, filepath)
+    print(filepath)
+    p_repo_diff = {}
+    for l in repo_diff.changed_lines.keys():
+        p_l = process_whitespace(l)
+        p_repo_diff[p_l] = p_repo_diff.get(p_l, {})
+        for c in repo_diff.changed_lines[l].keys():
+            p_repo_diff[p_l][c] = p_repo_diff[p_l].get(c, LineDelta())
+            p_repo_diff[p_l][c].add(repo_diff.changed_lines[l][c])
 
     blame = []
     cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
@@ -303,11 +312,11 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         so run a validation step,
         by checking if the commit has indeed deleted the line
         """
-        for l in repo_diff.changed_lines.keys():
-            if process_whitespace(l) == process_whitespace(line):
-                for commit in repo_diff.changed_lines[l].keys():
-                    if commit in commits and repo_diff.changed_lines[l][commit].deletions > 0:
-                        return commit
+        p_l = process_whitespace(line)
+        if p_l in p_repo_diff.keys():
+            for commit in p_repo_diff[p_l].keys():
+                if commit in commits and p_repo_diff[p_l][commit].deletions > 0:
+                    return commit
 
     for commit in d.keys():
         assert commit.isalnum()
