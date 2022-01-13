@@ -205,20 +205,9 @@ class CodeReviewAnalysis:
             self._locate_repository()
 
         registry_diff = get_registry_version_diff(self.ecosystem, self.package, self.old_version, self.new_version)
-        if registry_diff.old_version_git_sha and registry_diff.new_version_git_sha:
-            repository_diff = RepositoryDiff(
-                self.ecosystem,
-                self.package,
-                self.repository,
-                self.old_version,
-                self.new_version,
-                old_version_commit=registry_diff.old_version_git_sha,
-                new_version_commit=registry_diff.new_version_git_sha,
-            )
-        else:
-            repository_diff = RepositoryDiff(
-                self.ecosystem, self.package, self.repository, self.old_version, self.new_version
-            )
+        repository_diff = RepositoryDiff(
+            self.ecosystem, self.package, self.repository, self.old_version, self.new_version
+        )
 
         # checking package directory
         if repository_diff.old_version_subdir != repository_diff.new_version_subdir:
