@@ -13,6 +13,7 @@ from depdive.repository_diff import (
     UncertainSubdir,
 )
 from depdive.code_review_checker import CommitReviewInfo
+import logging
 
 
 class PackageDirectoryChanged(Exception):

@@ -67,10 +67,11 @@ def test_code_review_nix():
     assert not ca.phantom_lines
 
     stats = ca.stats
-    assert stats.reviewed_lines == 2113
-    assert stats.non_reviewed_lines == 260
-    assert stats.total_commit_count == 96
-    assert stats.reviewed_commit_count == 80
+    stats.print()
+    assert stats.reviewed_lines == 2103
+    assert stats.non_reviewed_lines == 247
+    assert stats.total_commit_count == 95
+    assert stats.reviewed_commit_count == 79
     assert len(ca.removed_files_in_registry) == 43
 
 
@@ -450,13 +451,14 @@ def test_code_review_numpy():
 def test_code_review_pry():
     ca = CodeReviewAnalysis(RUBYGEMS, "pry", "0.14.0", "0.14.1")
     stats = ca.stats
+    stats.print()
     assert stats.phantom_files == 0
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
     assert stats.reviewed_lines == 21
     assert stats.non_reviewed_lines == 14
-    assert stats.total_commit_count == 9
-    assert stats.reviewed_commit_count == 6
+    assert stats.total_commit_count == 8
+    assert stats.reviewed_commit_count == 5
 
 
 @pytest.mark.skip(reason="to limit API calls")
@@ -507,12 +509,13 @@ def test_code_review_excon():
 def test_code_review_deepmerge():
     ca = CodeReviewAnalysis(NPM, "deepmerge", "4.2.1", "4.2.2")
     stats = ca.stats
+    stats.print()
     print(ca.phantom_lines)
     assert stats.phantom_files == 2
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
     assert stats.reviewed_lines == 0
-    assert stats.non_reviewed_lines == 39
+    assert stats.non_reviewed_lines == 40
     assert stats.total_commit_count == 5
     assert stats.reviewed_commit_count == 0
 
@@ -569,3 +572,16 @@ def test_code_review_cycler():
 def test_code_review_signature():
     with pytest.raises(GitError):
         ca = CodeReviewAnalysis(CARGO, "signature", "1.3.2", "1.4.0")
+
+
+def test_code_review_mlflow():
+    # sometimes fails
+    ca = CodeReviewAnalysis(PYPI, "mlflow", "1.21.0", "1.22.0")
+    stats = ca.stats
+    assert stats.phantom_files == 66
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 675831
+    assert stats.non_reviewed_lines == 2
+    assert stats.total_commit_count == 40
+    assert stats.reviewed_commit_count == 39

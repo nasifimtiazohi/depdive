@@ -265,6 +265,7 @@ def git_blame(repo_path, filepath, commit):
 
 def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     filelines = get_file_lines(repo_path, start_commit, filepath)
+    processed_repo_diff = {process_whitespace(k): v for (k, v) in repo_diff.changed_lines.items()}
 
     blame = []
     cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
@@ -272,12 +273,11 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     )
     with os.popen(cmd) as process:
         blame = process.readlines()
-
     assert len(blame) == len(filelines)
 
     inbetween_commits = [start_commit] + get_doubledot_inbetween_commits(repo_path, start_commit, end_commit)[::-1]
 
-    def find_commit_idx(commit):
+    def find_commit_idx_in_inbetween_commits(commit):
         """
         find index within inbetween commits.
         git can act weird as it can strip some characters in the end for commit sha
@@ -288,38 +288,38 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
                 return i
 
     c2c = defaultdict(list)
+    file_commits = set()
+    for l in repo_diff.changed_lines.keys():
+        file_commits |= set(repo_diff.changed_lines[l].keys())
 
-    def validate_removal_commit(commit, line):
-        """
-        git blame may be inaccurate in case of some bulk changes,
-        so run a validation step,
-        by checking if the commit has indeed deleted the line
-        """
-        for l in repo_diff.changed_lines.keys():
-            if process_whitespace(l) == process_whitespace(line):
-                if commit in repo_diff.changed_lines[l].keys() and repo_diff.changed_lines[l][commit].deletions > 0:
-                    return commit
+    blame = [line.split(" ")[0] for line in blame]
+    blame = [line.removeprefix("^") for line in blame]
+    d = defaultdict(list)
+    for i, c in enumerate(blame):
+        d[c] += [i]
 
-        for l in repo_diff.changed_lines.keys():
-            if process_whitespace(l) == process_whitespace(line):
-                for commit in repo_diff.changed_lines[l].keys():
-                    if repo_diff.changed_lines[l][commit].deletions > 0:
-                        return commit
+    def find_next_commit(line):
+        if line in processed_repo_diff.keys():
+            for c in processed_repo_diff[line].keys():
+                if processed_repo_diff[line][c].deletions > 0:
+                    return c
 
-    for i, line in enumerate(blame):
-        commit = line.split(" ")[0]
-        commit = commit.removeprefix("^")
-        assert not commit.endswith("^") and not commit.endswith("~") and not commit.startswith("~")
-        idx = find_commit_idx(commit)
+    for commit in d.keys():
+        assert commit.isalnum()
+        idx = find_commit_idx_in_inbetween_commits(commit)
         assert idx is not None
         if idx == len(inbetween_commits) - 1:
             # line still present
             continue
 
         next_commit = inbetween_commits[idx + 1]
-        next_commit = validate_removal_commit(next_commit, filelines[i])
-        if next_commit:
-            c2c[next_commit] += [filelines[i]]
+        if next_commit in file_commits:
+            c2c[next_commit] += [filelines[i] for i in d[commit]]
+        else:
+            for i in d[commit]:
+                next_commit = find_next_commit(process_whitespace(filelines[i]))
+                if next_commit:
+                    c2c[next_commit] += [filelines[i]]
 
     return c2c
 
