@@ -172,5 +172,8 @@ def test_repository_common_ancestor():
             repo_path, "714704253443787cc0c9a395b6d94947bcf26687", start_commit
         ) == "714704253443787cc0c9a395b6d94947bcf26687"
 
+        assert valid_commit(repo_path, "714704253443787cc0c9a395b6d94947bcf26687")
+        assert not valid_commit(repo_path, "^714704")
+
 
 # TODO: get file_commit_stats for rename file

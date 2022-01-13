@@ -13,7 +13,6 @@ from depdive.repository_diff import (
     UncertainSubdir,
 )
 from depdive.code_review_checker import CommitReviewInfo
-import logging
 
 
 class PackageDirectoryChanged(Exception):
@@ -61,9 +60,6 @@ class CodeReviewAnalysis:
         self.directory: str = directory
         if not self.repository:
             self._locate_repository()
-
-        # these fields will be updated after analysis is run.
-        # TODO: Is this a good design pattern?
 
         self.start_commit: str = None
         self.end_commit: str = None
@@ -206,7 +202,13 @@ class CodeReviewAnalysis:
 
         registry_diff = get_registry_version_diff(self.ecosystem, self.package, self.old_version, self.new_version)
         repository_diff = RepositoryDiff(
-            self.ecosystem, self.package, self.repository, self.old_version, self.new_version
+            self.ecosystem,
+            self.package,
+            self.repository,
+            self.old_version,
+            self.new_version,
+            old_version_commit=registry_diff.old_version_git_sha,
+            new_version_commit=registry_diff.new_version_git_sha,
         )
 
         # checking package directory
@@ -234,6 +236,7 @@ class CodeReviewAnalysis:
                     self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
 
         self.stats = self.get_stats()
+        repository_diff.cleanup()
 
     def map_commit_to_added_lines(self, repository_diff, registry_diff):
         for f in registry_diff.diff.keys():

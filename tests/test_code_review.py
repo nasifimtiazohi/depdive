@@ -6,7 +6,6 @@ from depdive.registry_diff import VersionDifferError
 from depdive.repository_diff import GitError, ReleaseCommitNotFound
 
 
-# @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_guppy():
     ca = CodeReviewAnalysis(
         CARGO, "guppy", "0.8.0", "0.9.0", "https://github.com/facebookincubator/cargo-guppy", "./guppy"

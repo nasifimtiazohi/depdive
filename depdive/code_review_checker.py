@@ -3,13 +3,8 @@ from github import Github
 import os
 from enum import Enum
 import json
-
 import github
 from github.GithubException import GithubException
-
-"""
-CORNER CASES
-"""
 
 BOT = "[bot]"
 # TODO: handle bots?
@@ -82,13 +77,14 @@ class CommitReviewInfo:
         token = os.environ["GITHUB_TOKEN"]
         try:
             tokens = json.loads(token)
-            for k in tokens.keys():
-                g = Github(tokens[k])
-                if g.get_rate_limit().core.remaining > 0:
-                    return g
-            raise AllGitHubTokensRateLimitExceeded
         except:
             return Github(token)
+
+        for k in tokens.keys():
+            g = Github(tokens[k])
+            if g.get_rate_limit().core.remaining > 0:
+                return g
+        raise AllGitHubTokensRateLimitExceeded
 
     def _check_code_review(self):
         checkers = [

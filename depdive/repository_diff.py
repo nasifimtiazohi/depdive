@@ -266,7 +266,7 @@ def git_blame(repo_path, filepath, commit):
 
 def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     filelines = get_file_lines(repo_path, start_commit, filepath)
-    print(filepath)
+
     p_repo_diff = {}
     for l in repo_diff.changed_lines.keys():
         p_l = process_whitespace(l)
@@ -275,7 +275,6 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
             p_repo_diff[p_l][c] = p_repo_diff[p_l].get(c, LineDelta())
             p_repo_diff[p_l][c].add(repo_diff.changed_lines[l][c])
 
-    blame = []
     cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
         path=repo_path, start_commit=start_commit, end_commit=end_commit, fname=filepath
     )
@@ -295,18 +294,14 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
             if c.startswith(commit) or commit.startswith(c):
                 return i
 
-    c2c = defaultdict(list)
-    file_commits = set()
-    for l in repo_diff.changed_lines.keys():
-        file_commits |= set(repo_diff.changed_lines[l].keys())
-
     blame = [line.split(" ")[0] for line in blame]
     blame = [line.removeprefix("^") for line in blame]
-    d = defaultdict(list)
-    for i, c in enumerate(blame):
-        d[c] += [i]
 
-    def validate_removal_commit(line, commits):
+    blame_map = defaultdict(list)
+    for i, c in enumerate(blame):
+        blame_map[c] += [i]
+
+    def find_removal_commit(line, candidate_commits):
         """
         git blame may be inaccurate in case of some bulk changes,
         so run a validation step,
@@ -315,10 +310,11 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         p_l = process_whitespace(line)
         if p_l in p_repo_diff.keys():
             for commit in p_repo_diff[p_l].keys():
-                if commit in commits and p_repo_diff[p_l][commit].deletions > 0:
+                if commit in candidate_commits and p_repo_diff[p_l][commit].deletions > 0:
                     return commit
 
-    for commit in d.keys():
+    c2c = defaultdict(list)
+    for commit in blame_map.keys():
         assert commit.isalnum()
         idx = find_commit_idx_in_inbetween_commits(commit)
         assert idx is not None
@@ -327,8 +323,8 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
             continue
 
         next_commits = get_doubledot_inbetween_commits(repo_path, commit, end_commit)
-        for i in d[commit]:
-            next_commit = validate_removal_commit(process_whitespace(filelines[i]), next_commits)
+        for i in blame_map[commit]:
+            next_commit = find_removal_commit(process_whitespace(filelines[i]), next_commits)
             if next_commit:
                 c2c[next_commit] += [filelines[i]]
 
@@ -342,15 +338,23 @@ def get_common_start_point(repo_path, start_commit, end_commit):
         )
         with os.popen(cmd) as process:
             lines = process.readlines()
+
         assert len(lines) == 1
         ca = lines[0].strip()
-
-        for c in ["~", "^", "!"]:
-            assert c not in ca
+        assert ca.isalnum()
 
         return ca
     except:
         raise GitError
+
+
+def valid_commit(repo_path, commit):
+    repo = Repo(repo_path)
+    try:
+        repo.commit(commit)
+        return True
+    except:
+        return False
 
 
 class RepositoryDiff:
@@ -386,17 +390,23 @@ class RepositoryDiff:
         if c:
             return c.hexsha
 
+    def cleanup(self):
+        self._temp_dir.cleanup()
+
     def build_repository_diff(self):
         if not self.repo_path:
             self._temp_dir = tempfile.TemporaryDirectory()
             self.repo_path = self._temp_dir.name
             Repo.clone_from(self.repository, self.repo_path)
 
-        if not self.old_version_commit or not self.new_version_commit:
-            if not self.old_version_commit:
-                self.old_version_commit = self.get_commit_of_release(self.old_version)
-            if not self.new_version_commit:
-                self.new_version_commit = self.get_commit_of_release(self.new_version)
+        if (
+            not self.old_version_commit
+            or not self.new_version_commit
+            or not valid_commit(self.repo_path, self.old_version_commit)
+            or not valid_commit(self.repo_path, self.new_version_commit)
+        ):
+            self.old_version_commit = self.get_commit_of_release(self.old_version)
+            self.new_version_commit = self.get_commit_of_release(self.new_version)
 
             if not self.old_version_commit or not self.new_version_commit:
                 raise ReleaseCommitNotFound
@@ -435,8 +445,11 @@ class RepositoryDiff:
         the boundary pointed at by the version tag
 
         Note that, we expand our commit boundary very conservatively,
-        if the immediate next commit outside the boundary on the fiven file
+        if the immediate next commit outside the boundary on the given file
         does not address phantom lines, we quit.
+
+        We only do it for the new version commit,
+        as old version does not affect phantom lines present in the new update.
 
         Also, if commit boundary has changed, we re-process the object
         """
@@ -445,6 +458,7 @@ class RepositoryDiff:
         if not new_version_commit or not old_version_commit:
             return False
 
+        # check if there's any phantom addition
         additions = 0
         for l in phantom_lines.keys():
             additions += phantom_lines[l].additions
@@ -483,8 +497,10 @@ class RepositoryDiff:
                 idx = after_commits.index(self.new_version_commit)
                 if idx < len(after_commits) - 1:
                     self.new_version_commit = after_commits[idx + 1]
+                else:
+                    assert (False, "check commit boundary checking")
 
             self.build_repository_diff()
             return True
-        else:
-            return False
+
+        return False
