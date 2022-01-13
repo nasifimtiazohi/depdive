@@ -265,7 +265,6 @@ def git_blame(repo_path, filepath, commit):
 
 def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     filelines = get_file_lines(repo_path, start_commit, filepath)
-    processed_repo_diff = {process_whitespace(k): v for (k, v) in repo_diff.changed_lines.items()}
 
     blame = []
     cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
@@ -298,11 +297,17 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     for i, c in enumerate(blame):
         d[c] += [i]
 
-    def find_next_commit(line):
-        if line in processed_repo_diff.keys():
-            for c in processed_repo_diff[line].keys():
-                if processed_repo_diff[line][c].deletions > 0:
-                    return c
+    def validate_removal_commit(line, commits):
+        """
+        git blame may be inaccurate in case of some bulk changes,
+        so run a validation step,
+        by checking if the commit has indeed deleted the line
+        """
+        for l in repo_diff.changed_lines.keys():
+            if process_whitespace(l) == process_whitespace(line):
+                for commit in repo_diff.changed_lines[l].keys():
+                    if commit in commits and repo_diff.changed_lines[l][commit].deletions > 0:
+                        return commit
 
     for commit in d.keys():
         assert commit.isalnum()
@@ -312,14 +317,11 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
             # line still present
             continue
 
-        next_commit = inbetween_commits[idx + 1]
-        if next_commit in file_commits:
-            c2c[next_commit] += [filelines[i] for i in d[commit]]
-        else:
-            for i in d[commit]:
-                next_commit = find_next_commit(process_whitespace(filelines[i]))
-                if next_commit:
-                    c2c[next_commit] += [filelines[i]]
+        next_commits = get_doubledot_inbetween_commits(repo_path, commit, end_commit)
+        for i in d[commit]:
+            next_commit = validate_removal_commit(process_whitespace(filelines[i]), next_commits)
+            if next_commit:
+                c2c[next_commit] += [filelines[i]]
 
     return c2c
 
