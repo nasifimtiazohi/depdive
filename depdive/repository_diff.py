@@ -70,6 +70,9 @@ def get_all_commits_on_file(repo_path, filepath, start_commit=None, end_commit=N
 
 
 def get_commit_diff(repo_path, commit, reverse=False):
+    """
+    we do not use git show to get diffs from merge commit
+    """
     repo = Repo(repo_path)
     try:
         if not reverse:
@@ -264,6 +267,10 @@ def git_blame(repo_path, filepath, commit):
     return c2c
 
 
+def is_same_commit(sha_a, sha_b):
+    return sha_a.startswith(sha_b) or sha_b.startswith(sha_a)
+
+
 def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     filelines = get_file_lines(repo_path, start_commit, filepath)
 
@@ -282,18 +289,6 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         blame = process.readlines()
     assert len(blame) == len(filelines)
 
-    inbetween_commits = [start_commit] + get_doubledot_inbetween_commits(repo_path, start_commit, end_commit)[::-1]
-
-    def find_commit_idx_in_inbetween_commits(commit):
-        """
-        find index within inbetween commits.
-        git can act weird as it can strip some characters in the end for commit sha
-        """
-        nonlocal inbetween_commits
-        for i, c in enumerate(inbetween_commits):
-            if c.startswith(commit) or commit.startswith(c):
-                return i
-
     blame = [line.split(" ")[0] for line in blame]
     blame = [line.removeprefix("^") for line in blame]
 
@@ -306,6 +301,9 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         git blame may be inaccurate in case of some bulk changes,
         so run a validation step,
         by checking if the commit has indeed deleted the line
+
+        assumption: commits are sorted old to new
+        TODO: do explicit sorting within the function, maybe not because inner function
         """
         p_l = process_whitespace(line)
         if p_l in p_repo_diff.keys():
@@ -316,13 +314,10 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
     c2c = defaultdict(list)
     for commit in blame_map.keys():
         assert commit.isalnum()
-        idx = find_commit_idx_in_inbetween_commits(commit)
-        assert idx is not None
-        if idx == len(inbetween_commits) - 1:
-            # line still present
+        if is_same_commit(commit, end_commit):
             continue
 
-        next_commits = get_doubledot_inbetween_commits(repo_path, commit, end_commit)
+        next_commits = get_all_commits_on_file(repo_path, filepath, commit, end_commit)[::-1]
         for i in blame_map[commit]:
             next_commit = find_removal_commit(process_whitespace(filelines[i]), next_commits)
             if next_commit:
@@ -440,7 +435,7 @@ class RepositoryDiff:
             get_inbetween_commit_diff(self.repo_path, self.old_version_commit, self.new_version_commit)
         )
 
-    def check_beyond_commit_boundary(self, filepath, phantom_lines):
+    def traverse_beyond_new_version_commit(self, filepath, phantom_lines):
         """
         returns new possible commit boundary
         for the corner case where the version was wrongly tagged at some commit

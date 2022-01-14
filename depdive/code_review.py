@@ -302,11 +302,9 @@ class CodeReviewAnalysis:
             for commit in self.added_loc_to_commit_map[f].keys():
                 cur = len(self.added_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
-                    print("added", "reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
-                    print("added", "non-reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
@@ -314,11 +312,9 @@ class CodeReviewAnalysis:
             for commit in self.removed_loc_to_commit_map[f].keys():
                 cur = len(self.removed_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
-                    print("removed", "reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
-                    print("removed", "non-reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 

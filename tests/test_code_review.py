@@ -536,9 +536,9 @@ def test_code_review_numpy():
     assert stats.phantom_files == 39
     assert stats.files_with_phantom_lines == 1
     assert stats.phantom_lines == 3
-    assert stats.reviewed_lines == 231
-    assert stats.non_reviewed_lines == 26
-    assert stats.total_commit_count == 13
+    assert stats.reviewed_lines == 245
+    assert stats.non_reviewed_lines == 12
+    assert stats.total_commit_count == 10
     assert stats.reviewed_commit_count == 9
 
 
