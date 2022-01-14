@@ -251,7 +251,7 @@ class CodeReviewAnalysis:
 
             c2c = git_blame(repository_diff.repo_path, repo_f, repository_diff.new_version_commit)
             for commit in list(c2c.keys()):
-                if commit not in repository_diff.commits:
+                if commit not in repository_diff.commits and commit not in repository_diff.diff[repo_f].commits:
                     c2c.pop(commit)
                 else:
                     c2c[commit] = [process_whitespace(l) for l in c2c[commit]]
@@ -298,14 +298,15 @@ class CodeReviewAnalysis:
         non_reviewed_commits = set()
         reviewed_commits = set()
 
-
         for f in self.added_loc_to_commit_map.keys():
             for commit in self.added_loc_to_commit_map[f].keys():
                 cur = len(self.added_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
+                    print("added", "reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
+                    print("added", "non-reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
@@ -313,9 +314,11 @@ class CodeReviewAnalysis:
             for commit in self.removed_loc_to_commit_map[f].keys():
                 cur = len(self.removed_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
+                    print("removed", "reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
+                    print("removed", "non-reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 

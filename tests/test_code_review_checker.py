@@ -34,10 +34,13 @@ def test_cr_syn():
     assert cr.review_category is None
 
 
-def test_cr_multiple_token():
+def test_cr_pry_multiple_token():
     with open("env/tokens.json", "r") as f:
         tokens = json.load(f)
     os.environ["GITHUB_TOKEN"] = json.dumps(tokens)
 
     cr = CommitReviewInfo("https://github.com/pry/pry/", "033f69b3afcce57ed8d8b68f297457d1a80b1e6c")
+    assert cr.review_category == CodeReviewCategory.DifferentMerger
+
+    cr = CommitReviewInfo("https://github.com/pry/pry/", "60e84ee1d80919b0cc41268a878ffc9e78f903ac")
     assert cr.review_category == CodeReviewCategory.DifferentMerger

@@ -419,10 +419,10 @@ class RepositoryDiff:
         )
 
         self.commits = get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
-        self.reverse_commits = get_doubledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit)
-        self.diff = get_commit_diff_stats_from_repo(self.repo_path,
-            self.commits,
-            self.reverse_commits)
+        self.reverse_commits = get_doubledot_inbetween_commits(
+            self.repo_path, self.new_version_commit, self.old_version_commit
+        )
+        self.diff = get_commit_diff_stats_from_repo(self.repo_path, self.commits, self.reverse_commits)
 
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
 
