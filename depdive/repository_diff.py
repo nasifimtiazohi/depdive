@@ -309,8 +309,8 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         """
         p_l = process_whitespace(line)
         if p_l in p_repo_diff.keys():
-            for commit in p_repo_diff[p_l].keys():
-                if commit in candidate_commits and p_repo_diff[p_l][commit].deletions > 0:
+            for commit in candidate_commits:
+                if commit in p_repo_diff[p_l].keys() and p_repo_diff[p_l][commit].deletions > 0:
                     return commit
 
     c2c = defaultdict(list)
@@ -376,6 +376,9 @@ class RepositoryDiff:
         self.old_version_subdir = None  # package directory at the old version commit
         self.new_version_subdir = None  # package directory at the new version commit
 
+        self.commits = None
+        self.reverse_commits = None
+
         self.common_starter_commit = None
         self.diff = None  # diff across individual commits
         self.new_version_file_list = None
@@ -415,20 +418,20 @@ class RepositoryDiff:
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
-        self.diff = get_commit_diff_stats_from_repo(
-            self.repo_path,
-            get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit),
-            get_doubledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit),
-        )
+        self.commits = get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
+        self.reverse_commits = get_doubledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit)
+        self.diff = get_commit_diff_stats_from_repo(self.repo_path,
+            self.commits,
+            self.reverse_commits)
 
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
 
         try:
             self.old_version_subdir = locate_subdir(
-                self.ecosystem, self.package, self.repository, self.old_version_commit
+                self.ecosystem, self.package, self.repository, commit=self.old_version_commit, version=self.old_version
             )
             self.new_version_subdir = locate_subdir(
-                self.ecosystem, self.package, self.repository, self.new_version_commit
+                self.ecosystem, self.package, self.repository, commit=self.new_version_commit, version=self.new_version
             )
         except:
             self._temp_dir.cleanup()

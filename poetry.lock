@@ -475,7 +475,7 @@ python-versions = "*"
 
 [[package]]
 name = "package-locator"
-version = "0.4.2"
+version = "0.4.3"
 description = "For a package, locate its source repository url and its relative path within the repository"
 category = "main"
 optional = false
@@ -1548,8 +1548,8 @@ nodeenv = [
     {file = "nodeenv-1.6.0.tar.gz", hash = "sha256:3ef13ff90291ba2a4a7a4ff9a979b63ffdd00a464dbe04acf0ea6471517a4c2b"},
 ]
 package-locator = [
-    {file = "package-locator-0.4.2.tar.gz", hash = "sha256:3dd9e2aab05308475dd99b00ccf3e1ab4cb0a3cfbd5f89ef6d5b7e1c3cc95533"},
-    {file = "package_locator-0.4.2-py3-none-any.whl", hash = "sha256:161b6030bd53e8839ea20ae6e7dbc65fee9a00ba1e8b2f48543a541d7fe57cab"},
+    {file = "package-locator-0.4.3.tar.gz", hash = "sha256:229dedc3e575ae2262318833422078e92f485a6235192db771be806534fff156"},
+    {file = "package_locator-0.4.3-py3-none-any.whl", hash = "sha256:7ed42e1f96b8cb769d58214a35d7e1c1979919d196431c5f56f86501e9007124"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},

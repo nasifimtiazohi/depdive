@@ -250,10 +250,8 @@ class CodeReviewAnalysis:
                 continue
 
             c2c = git_blame(repository_diff.repo_path, repo_f, repository_diff.new_version_commit)
-
             for commit in list(c2c.keys()):
-                if commit not in repository_diff.diff[repo_f].commits:
-                    # added before the old version
+                if commit not in repository_diff.commits:
                     c2c.pop(commit)
                 else:
                     c2c[commit] = [process_whitespace(l) for l in c2c[commit]]
@@ -299,6 +297,7 @@ class CodeReviewAnalysis:
         reviewed_lines = non_reviewed_lines = 0
         non_reviewed_commits = set()
         reviewed_commits = set()
+
 
         for f in self.added_loc_to_commit_map.keys():
             for commit in self.added_loc_to_commit_map[f].keys():

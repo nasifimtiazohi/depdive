@@ -67,13 +67,14 @@ def test_code_review_nix():
 
     stats = ca.stats
     stats.print()
-    assert stats.reviewed_lines == 2103
-    assert stats.non_reviewed_lines == 247
+    assert stats.reviewed_lines == 2113
+    assert stats.non_reviewed_lines == 258
     assert stats.total_commit_count == 95
-    assert stats.reviewed_commit_count == 79
+    assert stats.reviewed_commit_count == 80
     assert len(ca.removed_files_in_registry) == 43
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_acorn():
     """test phantom files"""
     ca = CodeReviewAnalysis(NPM, "acorn", "8.5.0", "8.6.0")
@@ -317,8 +318,8 @@ def test_code_review_rand():
     stats = ca.stats
     assert stats.reviewed_lines == 787
     assert stats.non_reviewed_lines == 0
-    assert stats.total_commit_count == 41
-    assert stats.reviewed_commit_count == 41
+    assert stats.total_commit_count == 44
+    assert stats.reviewed_commit_count == 44
 
 
 @pytest.mark.skip(reason="to limit API calls")
@@ -340,14 +341,15 @@ def test_code_review_tokio_c():
     assert stats.reviewed_commit_count == 12
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_chalk():
     ca = CodeReviewAnalysis(NPM, "chalk", "4.1.2", "5.0.0")
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
     stats = ca.stats
-    assert stats.reviewed_lines == 313
-    assert stats.non_reviewed_lines == 977
+    assert stats.reviewed_lines == 477
+    assert stats.non_reviewed_lines == 813
     assert stats.total_commit_count == 26
     assert stats.reviewed_commit_count == 11
 
@@ -395,13 +397,19 @@ def test_code_review_source_map():
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
+    stats = ca.stats
+    assert stats.reviewed_lines == 3387
+    assert stats.non_reviewed_lines == 781
+    assert stats.total_commit_count == 14
+    assert stats.reviewed_commit_count == 9
+
 
 def test_code_review_uuid():
     with pytest.raises(ReleaseCommitNotFound):
         ca = CodeReviewAnalysis(NPM, "uuid", "8.3.2-beta.0", "8.3.2")
 
 
-# @pytest.mark.skip(reason="to limit API calls")
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_babel():
     ca = CodeReviewAnalysis(NPM, "@babel/highlight", "7.14.5", "7.16.0")
     assert len(ca.phantom_files) == 2
@@ -422,22 +430,74 @@ def test_code_review_requests():
     assert ca.stats.non_reviewed_lines == 0
 
 
-@pytest.mark.skip(reason="to limit API calls")
+# @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_pytest():
     ca = CodeReviewAnalysis(PYPI, "pytest", "6.2.0", "6.2.5")
+    print(ca.phantom_files)
     stats = ca.stats
+    cl = 0
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
+
+    al = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                al += ca.registry_diff[f][l].additions
+
+    assert cl == al
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    assert cl == rl
     assert stats.phantom_files == 1
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
-    assert stats.reviewed_lines == 58
-    assert stats.non_reviewed_lines == 80
-    assert stats.total_commit_count == 10
-    assert stats.reviewed_commit_count == 3
+    assert stats.reviewed_lines == 52
+    assert stats.non_reviewed_lines == 86
+    assert stats.total_commit_count == 16
+    assert stats.reviewed_commit_count == 5
 
 
 def test_code_review_numpy():
     ca = CodeReviewAnalysis(PYPI, "numpy", "1.21.4", "1.21.5")
     stats = ca.stats
+    cl = 0
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cl += len(ca.added_loc_to_commit_map[f][c])
+
+    al = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                al += ca.registry_diff[f][l].additions
+
+    print(cl, al)
+
+    cl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            cl += len(ca.removed_loc_to_commit_map[f][c])
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+
+    print(cl, rl)
+
     assert stats.phantom_files == 39
     assert stats.files_with_phantom_lines == 1
     assert stats.phantom_lines == 3
