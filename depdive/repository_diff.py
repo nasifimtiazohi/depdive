@@ -1,4 +1,3 @@
-from unittest.util import _PLACEHOLDER_LEN
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
