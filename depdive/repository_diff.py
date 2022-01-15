@@ -344,15 +344,16 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         if is_same_commit(commit, end_commit):
             continue
 
-        next_commits = get_doubledot_inbetween_commits(repo_path, commit, end_commit)
+        next_commits = get_doubledot_inbetween_commits(repo_path, commit, end_commit)[::-1]
         for i in blame_map[commit]:
             line = process_whitespace(filelines[i])
             next_commit = find_removal_commit(line, next_commits)
             if next_commit:
                 c2c[next_commit] += [filelines[i]]
             else:
-                # print(filepath, line, commit)
-                assert not line or line in new_version_filelines
+                print(filepath, line, commit)
+                #print(new_version_filelines)
+                #assert not line or line in new_version_filelines
     return c2c
 
 
