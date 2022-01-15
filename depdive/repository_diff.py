@@ -40,6 +40,7 @@ class MultipleCommitFileChangeData:
         # keeps track if it is a renamed file
         self.is_rename: bool = False
         self.old_name: str = None
+        self.new_name: str = None
 
         self.commits = set()
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
@@ -199,7 +200,6 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
     def recurring_merge_rename(f):
         merged_files.add(f)
         if files[f].is_rename and files[f].old_name in files.keys() and files[f].old_name not in merged_files:
-
             old_f = files[f].old_name
             files[old_f] = recurring_merge_rename(old_f)
             for l in files[old_f].changed_lines.keys():
@@ -209,11 +209,31 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                     for c in files[old_f].changed_lines[l]:
                         if c not in files[f].changed_lines[l]:
                             files[f].changed_lines[l][c] = files[old_f].changed_lines[l][c]
+
         return files[f]
 
     # converge with old name in the case of renamed files
     for f in files.keys():
         files[f] = recurring_merge_rename(f)
+
+    # make old names point to the same commits as the new
+    # TODO: make this logic more concise?
+    def get_all_old_names(f):
+        if f not in files or not files[f].is_rename:
+            return []
+        else:
+            return [files[f].old_name] + get_all_old_names(files[f].old_name)
+
+    rename_map = {}
+    all_old_names = set()
+    for f in files.keys():
+        rename_map[f] = set(get_all_old_names(f))
+        all_old_names |= rename_map[f]
+
+    for f in list(files.keys()):
+        if f not in all_old_names and rename_map[f]:
+            for old_f in rename_map[f]:
+                files[old_f] = files[f]
 
     return files
 

@@ -67,10 +67,10 @@ def test_code_review_nix():
     assert not ca.phantom_lines
 
     stats = ca.stats
-    assert stats.reviewed_lines == 2113
-    assert stats.non_reviewed_lines == 258
-    assert stats.total_commit_count == 95
-    assert stats.reviewed_commit_count == 80
+    assert stats.reviewed_lines == 2109
+    assert stats.non_reviewed_lines == 262
+    assert stats.total_commit_count == 73
+    assert stats.reviewed_commit_count == 61
     assert len(ca.removed_files_in_registry) == 43
 
 
@@ -218,7 +218,7 @@ def test_code_review_quote():
     stats = ca.stats
     assert stats.reviewed_lines == 20
     assert stats.non_reviewed_lines == 395
-    assert stats.total_commit_count == 30
+    assert stats.total_commit_count == 29
     assert stats.reviewed_commit_count == 2
 
 
@@ -304,7 +304,6 @@ def test_code_review_minimist():
     stats.non_reviewed_lines == 0
 
 
-@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_rand():
     ca = CodeReviewAnalysis(
         CARGO,
@@ -318,8 +317,8 @@ def test_code_review_rand():
     stats = ca.stats
     assert stats.reviewed_lines == 787
     assert stats.non_reviewed_lines == 0
-    assert stats.total_commit_count == 44
-    assert stats.reviewed_commit_count == 44
+    assert stats.total_commit_count == 36
+    assert stats.reviewed_commit_count == 36
 
 
 @pytest.mark.skip(reason="to limit API calls")
@@ -341,7 +340,7 @@ def test_code_review_tokio_c():
     assert stats.reviewed_commit_count == 12
 
 
-@pytest.mark.skip(reason="to limit API calls")
+# @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_chalk():
     ca = CodeReviewAnalysis(NPM, "chalk", "4.1.2", "5.0.0")
     assert not ca.phantom_files
@@ -350,6 +349,7 @@ def test_code_review_chalk():
     # file renamed makes cl and al,rl different
 
     stats = ca.stats
+    stats.print()
     assert stats.reviewed_lines == 539
     assert stats.non_reviewed_lines == 900
     assert stats.total_commit_count == 26

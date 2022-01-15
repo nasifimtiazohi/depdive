@@ -172,7 +172,7 @@ class CodeReviewAnalysis:
 
             if phantom_lines:
                 # try looking beyond the initial commit boundary
-                has_commit_boundary_changed = repository_diff.check_beyond_commit_boundary(
+                has_commit_boundary_changed = repository_diff.traverse_beyond_new_version_commit(
                     repo_f,
                     phantom_lines,
                 )
@@ -218,6 +218,12 @@ class CodeReviewAnalysis:
             raise UncertainSubdir
         if repository_diff.new_version_subdir != self.directory:
             self.directory = repository_diff.new_version_subdir
+
+        temp = set()
+        for l in repository_diff.diff["index.d.ts"].changed_lines.keys():
+            temp |= set(repository_diff.diff["index.d.ts"].changed_lines[l].keys())
+        # print(temp)
+        # exit()
 
         self._process_phantom_files(registry_diff, repository_diff.new_version_file_list)
         self._filter_out_phantom_files(registry_diff)
@@ -302,9 +308,11 @@ class CodeReviewAnalysis:
             for commit in self.added_loc_to_commit_map[f].keys():
                 cur = len(self.added_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
+                    print("added", "reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
+                    print("added", "non-reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
@@ -312,9 +320,11 @@ class CodeReviewAnalysis:
             for commit in self.removed_loc_to_commit_map[f].keys():
                 cur = len(self.removed_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
+                    print("removed", "reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
+                    print("removed", "non-reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
