@@ -219,11 +219,11 @@ class CodeReviewAnalysis:
         if repository_diff.new_version_subdir != self.directory:
             self.directory = repository_diff.new_version_subdir
 
-        temp = set()
-        for l in repository_diff.diff["index.d.ts"].changed_lines.keys():
-            temp |= set(repository_diff.diff["index.d.ts"].changed_lines[l].keys())
-        # print(temp)
-        # exit()
+        # temp = set()
+        # for l in repository_diff.diff["index.d.ts"].changed_lines.keys():
+        #     temp |= set(repository_diff.diff["index.d.ts"].changed_lines[l].keys())
+        # # print(temp)
+        # # exit()
 
         self._process_phantom_files(registry_diff, repository_diff.new_version_file_list)
         self._filter_out_phantom_files(registry_diff)

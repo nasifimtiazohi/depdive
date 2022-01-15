@@ -31,7 +31,7 @@ def preprocess_cargo_crate_files(version_diff):
     if "Cargo.toml.orig" in version_diff.diff:
         version_diff.diff.pop("Cargo.toml", None)
         version_diff.diff["Cargo.toml"] = version_diff.diff["Cargo.toml.orig"]
-
+        version_diff.diff["Cargo.toml"].source_file = version_diff.diff["Cargo.toml"].target_file = "Cargo.toml"
         version_diff.diff.pop("Cargo.toml.orig", None)
         version_diff.new_version_filelist.discard("Cargo.toml.orig")
     else:

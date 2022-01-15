@@ -342,6 +342,8 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
             next_commit = find_removal_commit(process_whitespace(filelines[i]), next_commits)
             if next_commit:
                 c2c[next_commit] += [filelines[i]]
+            else:
+                print(filepath, filelines[i], commit)
 
     return c2c
 
