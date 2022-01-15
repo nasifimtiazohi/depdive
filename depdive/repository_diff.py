@@ -332,21 +332,26 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
                 if commit in p_repo_diff[p_l].keys() and p_repo_diff[p_l][commit].deletions > 0:
                     return commit
 
-    new_version_filelines = [process_whitespace(l) for l in get_file_lines(repo_path, end_commit, filepath)]
+    try:
+        new_version_filelines = [process_whitespace(l) for l in get_file_lines(repo_path, end_commit, filepath)]
+    except:
+        # the file is not present in the new version
+        new_version_filelines = []
 
     c2c = defaultdict(list)
     for commit in blame_map.keys():
         assert commit.isalnum()
         if is_same_commit(commit, end_commit):
             continue
-    
-        next_commits = get_all_commits_on_file(repo_path, filepath, commit, end_commit)[::-1]
+
+        next_commits = get_doubledot_inbetween_commits(repo_path, commit, end_commit)
         for i in blame_map[commit]:
             line = process_whitespace(filelines[i])
             next_commit = find_removal_commit(line, next_commits)
             if next_commit:
                 c2c[next_commit] += [filelines[i]]
             else:
+                # print(filepath, line, commit)
                 assert not line or line in new_version_filelines
     return c2c
 

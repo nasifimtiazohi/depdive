@@ -1,4 +1,3 @@
-from re import L
 from package_locator.common import CARGO, NPM, PYPI, RUBYGEMS
 from depdive.code_review import CodeReviewAnalysis, UncertainSubdir
 import pytest
