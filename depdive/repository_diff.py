@@ -40,7 +40,6 @@ class MultipleCommitFileChangeData:
         self.is_rename: bool = False
         self.old_name: str = None
 
-        self.commits = set()
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
@@ -194,8 +193,6 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                 assert commit not in files[file].changed_lines[line]
                 files[file].changed_lines[line][commit] = diff[file].changed_lines[line]
 
-            files[file].commits.add(commit)
-
     merged_files = set()  # keep track of merged file to avoid infinite recursion
 
     def recurring_merge_rename(f):
@@ -219,8 +216,11 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
 
     # make old names point to the same commits as the new
     # TODO: make this logic more concise?
+    merged_files = set()  # keep track of merged file to avoid infinite recursion
+
     def get_all_old_names(f):
-        if f not in files or not files[f].is_rename:
+        merged_files.add(f)
+        if f not in files or not files[f].is_rename or files[f].old_name in merged_files:
             return []
         else:
             return [files[f].old_name] + get_all_old_names(files[f].old_name)
@@ -302,7 +302,6 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         for c in repo_diff.changed_lines[l].keys():
             p_repo_diff[p_l][c] = p_repo_diff[p_l].get(c, LineDelta())
             p_repo_diff[p_l][c].add(repo_diff.changed_lines[l][c])
-    
 
     cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
         path=repo_path, start_commit=start_commit, end_commit=end_commit, fname=filepath
@@ -443,7 +442,9 @@ class RepositoryDiff:
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
-        self.commits = get_doubledot_inbetween_commits(self.repo_path, self.common_starter_commit, self.new_version_commit)
+        self.commits = get_doubledot_inbetween_commits(
+            self.repo_path, self.common_starter_commit, self.new_version_commit
+        )
         self.reverse_commits = get_doubledot_inbetween_commits(
             self.repo_path, self.new_version_commit, self.old_version_commit
         )
