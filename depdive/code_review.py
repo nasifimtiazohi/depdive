@@ -22,16 +22,23 @@ class PackageDirectoryChanged(Exception):
 class DepdiveStats:
     def __init__(
         self,
-        reviewed_lines,
-        non_reviewed_lines,
+        added_reviewed_lines,
+        added_non_reviewed_lines,
+        removed_reviewed_lines,
+        removed_non_reviewed_lines,
         reviewed_commits,
         non_reviewed_commits,
         phantom_files,
         files_with_phantom_lines,
         phantome_lines,
     ) -> None:
-        self.reviewed_lines = reviewed_lines
-        self.non_reviewed_lines = non_reviewed_lines
+        self.added_reviewed_lines = added_reviewed_lines
+        self.added_non_reviewed_lines = added_non_reviewed_lines
+        self.removed_reviewed_lines = removed_reviewed_lines
+        self.removed_non_reviewed_lines = removed_non_reviewed_lines
+
+        self.reviewed_lines = self.added_reviewed_lines + self.removed_reviewed_lines
+        self.non_reviewed_lines = self.added_non_reviewed_lines + self.removed_non_reviewed_lines
 
         self.total_commit_count = len(reviewed_commits) + len(non_reviewed_commits)
         self.reviewed_commit_count = len(reviewed_commits)
@@ -252,7 +259,7 @@ class CodeReviewAnalysis:
 
             c2c = git_blame(repository_diff.repo_path, repo_f, repository_diff.new_version_commit)
             for commit in list(c2c.keys()):
-                if commit not in repository_diff.commits and commit not in repository_diff.diff[repo_f].commits:
+                if commit not in repository_diff.commits:
                     c2c.pop(commit)
                 else:
                     c2c[commit] = [process_whitespace(l) for l in c2c[commit]]
@@ -280,6 +287,7 @@ class CodeReviewAnalysis:
                     f in self.phantom_lines.keys()
                     and repo_f not in repository_diff.diff.keys()
                 )
+                or repo_f not in repository_diff.diff.keys()
             ):
                 continue
 
@@ -297,7 +305,7 @@ class CodeReviewAnalysis:
             self.removed_loc_to_commit_map[f] = c2c
 
     def get_stats(self):
-        reviewed_lines = non_reviewed_lines = 0
+        added_reviewed_lines = added_non_reviewed_lines = 0
         non_reviewed_commits = set()
         reviewed_commits = set()
 
@@ -305,20 +313,21 @@ class CodeReviewAnalysis:
             for commit in self.added_loc_to_commit_map[f].keys():
                 cur = len(self.added_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
-                    reviewed_lines += cur
+                    added_reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
-                    non_reviewed_lines += cur
+                    added_non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
+        removed_reviewed_lines = removed_non_reviewed_lines = 0
         for f in self.removed_loc_to_commit_map.keys():
             for commit in self.removed_loc_to_commit_map[f].keys():
                 cur = len(self.removed_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
-                    reviewed_lines += cur
+                    removed_reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
-                    non_reviewed_lines += cur
+                    removed_non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
         phantom_files = len(self.phantom_files)
@@ -333,8 +342,10 @@ class CodeReviewAnalysis:
         files_with_phantom_lines = len(files_with_phantom_lines)
 
         return DepdiveStats(
-            reviewed_lines,
-            non_reviewed_lines,
+            added_reviewed_lines,
+            added_non_reviewed_lines,
+            removed_reviewed_lines,
+            removed_non_reviewed_lines,
             reviewed_commits,
             non_reviewed_commits,
             phantom_files,
