@@ -1,10 +1,10 @@
-from git import exc
 from github import Github
 import os
 from enum import Enum
 import json
 import github
-from github.GithubException import GithubException
+from github.NamedUser import NamedUser
+from github.PullRequestReview import PullRequestReview
 
 BOT = "[bot]"
 # TODO: handle bots?
@@ -25,6 +25,34 @@ class CodeReviewCategory(Enum):
     DifferentCommitter = 3
     GerritReview = 3
     ProwReview = 4
+
+
+class DifferentCommitterMetadata:
+    def __init__(self, author: NamedUser, committer: NamedUser):
+        self.author = author
+        self.committer = committer
+
+
+class DifferentMergerMetadata:
+    def __init__(self, author: NamedUser, merger: NamedUser):
+        self.author = author
+        self.merger = merger
+
+
+class GitHubReviewMetadata:
+    def __init__(self, creator: NamedUser, reviewers: list[PullRequestReview]) -> None:
+        self.creator = creator
+        self.reviewers = reviewers
+
+
+class GerritReviewMetadata:
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class ProeReviewMetadata:
+    def __init__(self, labels: list[str]) -> None:
+        self.labels = labels
 
 
 class NotGitHubRepo(Exception):
@@ -61,6 +89,7 @@ class CommitReviewInfo:
                 raise GitHubAPIUnknownObject
 
             self.review_category = None
+            self.review_metadata = None
             self.github_pull_requests = []
 
             try:
@@ -103,10 +132,13 @@ class CommitReviewInfo:
             self.github_pull_requests.append(pr)
             if pr.get_reviews().totalCount > 0:
                 self.review_category = CodeReviewCategory.GitHubReview
+                self.review_metadata = GitHubReviewMetadata(pr.user, pr.get_reviews())
             elif pr.user and pr.merged_by and pr.user.login != pr.merged_by.login and pr.merged_by.login != GITHUB:
                 self.review_category = CodeReviewCategory.DifferentMerger
+                self.review_metadata = DifferentMergerMetadata(pr.user, pr.merged_by)
             elif any([l.name in ["lgtm", "approved"] for l in pr.get_labels()]):
                 self.review_category = CodeReviewCategory.ProwReview
+                self.review_metadata = ProeReviewMetadata([l.name for l in pr.get_labels()])
 
     def different_committer(self):
         if (
@@ -116,8 +148,10 @@ class CommitReviewInfo:
             and self.github_commit.committer.login != GITHUB
         ):
             self.review_category = CodeReviewCategory.DifferentCommitter
+            self.review_metadata = DifferentCommitterMetadata(self.github_commit.author, self.github_commit.committer)
 
     def gerrit_review(self):
         message = self.github_commit.commit.message
         if "https://review" in message and "\nReviewed-by: " in message:
             self.review_category = CodeReviewCategory.GerritReview
+            self.review_metadata = GerritReviewMetadata(self.github_commit.commit.message)

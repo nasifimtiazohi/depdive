@@ -6,6 +6,8 @@ import json
 def test_cr_tokio():
     cr = CommitReviewInfo("https://github.com/tokio-rs/tokio/", "5739d6dcf484b4aa6b539ac018d354937ad33359")
     assert cr.review_category == CodeReviewCategory.GitHubReview
+    assert cr.review_metadata.creator.login == "elichai"
+    assert len(list(cr.review_metadata.reviewers)) == 3
 
     cr = CommitReviewInfo("https://github.com/tokio-rs/tokio/", "9bff885f343c7d530f3737aa071925c40d9889c6")
     assert cr.review_category == CodeReviewCategory.GitHubReview
@@ -14,14 +16,23 @@ def test_cr_tokio():
 def test_cr_lodash():
     cr = CommitReviewInfo("https://github.com/lodash/lodash", "4c2e40e7a2fc5e40d4962afad0ea286dfb963da7")
     assert cr.review_category == CodeReviewCategory.DifferentMerger
+    cr.review_metadata.author.id == 40483898
+    cr.review_metadata.author.login == "jacob-lcs"
+    cr.review_metadata.merger.id == 4303
+    cr.review_metadata.merger.login == "jdalton"
 
     cr = CommitReviewInfo("https://github.com/lodash/lodash", "3469357cff396a26c363f8c1b5a91dde28ba4b1c")
     assert cr.review_category == CodeReviewCategory.DifferentCommitter
+    assert cr.review_metadata.author.id == 439401
+    assert cr.review_metadata.author.login == "stof"
+    assert cr.review_metadata.committer.id == 813865
+    cr.review_metadata.committer.login == "bnjmnt4n"
 
 
 def test_cr_typo3():
     cr = CommitReviewInfo("https://github.com/TYPO3/typo3", "a3e2d88ce93475b62dabf001650df2141a948f6f")
     assert cr.review_category == CodeReviewCategory.GerritReview
+    assert "Reviewed-by:" in cr.review_metadata.message
 
 
 def test_cr_acorn():
