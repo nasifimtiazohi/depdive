@@ -56,6 +56,9 @@ def test_code_review_tokio_a():
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
+    # versions come from different branches, therefore, 
+    # can't compare mapped loc to registry diff
+
     stats = ca.stats
     assert stats.non_reviewed_lines == 0
 
@@ -65,7 +68,11 @@ def test_code_review_nix():
     assert not ca.phantom_files
     assert not ca.phantom_lines
 
+    # versions come from different branches, therefore, 
+    # can't compare mapped loc to registry diff
+
     stats = ca.stats
+    stats.print()
     assert stats.reviewed_lines == 2109
     assert stats.non_reviewed_lines == 262
     assert stats.total_commit_count == 73

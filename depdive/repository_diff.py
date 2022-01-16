@@ -302,6 +302,7 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
         for c in repo_diff.changed_lines[l].keys():
             p_repo_diff[p_l][c] = p_repo_diff[p_l].get(c, LineDelta())
             p_repo_diff[p_l][c].add(repo_diff.changed_lines[l][c])
+    
 
     cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
         path=repo_path, start_commit=start_commit, end_commit=end_commit, fname=filepath
@@ -351,9 +352,7 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
             if next_commit:
                 c2c[next_commit] += [filelines[i]]
             else:
-                print(filepath, line, commit)
-                #print(new_version_filelines)
-                #assert not line or line in new_version_filelines
+                assert not line or line in new_version_filelines
     return c2c
 
 
@@ -444,7 +443,7 @@ class RepositoryDiff:
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
-        self.commits = get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
+        self.commits = get_doubledot_inbetween_commits(self.repo_path, self.common_starter_commit, self.new_version_commit)
         self.reverse_commits = get_doubledot_inbetween_commits(
             self.repo_path, self.new_version_commit, self.old_version_commit
         )
