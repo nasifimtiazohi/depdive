@@ -151,6 +151,9 @@ class CodeReviewAnalysis:
 
     def _proccess_phantom_lines(self, registry_diff, repository_diff):
         for f in registry_diff.diff.keys():
+            registry_file_diff = self._get_registry_file_line_counter(registry_diff.diff[f])
+            self.registry_diff[f] = registry_file_diff
+
             if not registry_diff.diff[f].target_file:
                 continue
 
@@ -164,7 +167,7 @@ class CodeReviewAnalysis:
                     repository_diff.repo_path, repo_f, end_commit=repository_diff.new_version_commit
                 )
 
-            registry_file_diff = self._get_registry_file_line_counter(registry_diff.diff[f])
+            
 
             phantom_lines = self._get_phantom_lines_in_a_file(
                 registry_file_diff, repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
@@ -185,7 +188,6 @@ class CodeReviewAnalysis:
             if phantom_lines:
                 self.phantom_lines[f] = phantom_lines
 
-            self.registry_diff[f] = registry_file_diff
 
     def _filter_out_phantom_files(self, registry_diff):
         for pf in self.phantom_files:
@@ -210,6 +212,7 @@ class CodeReviewAnalysis:
             old_version_commit=registry_diff.old_version_git_sha,
             new_version_commit=registry_diff.new_version_git_sha,
         )
+
 
         # checking package directory
         if repository_diff.old_version_subdir != repository_diff.new_version_subdir:
@@ -307,11 +310,9 @@ class CodeReviewAnalysis:
             for commit in self.added_loc_to_commit_map[f].keys():
                 cur = len(self.added_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
-                    print("added", "reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
-                    print("added", "non-reviewed", f, commit, self.added_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 
@@ -319,11 +320,9 @@ class CodeReviewAnalysis:
             for commit in self.removed_loc_to_commit_map[f].keys():
                 cur = len(self.removed_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
-                    print("removed", "reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     reviewed_lines += cur
                     reviewed_commits.add(commit)
                 else:
-                    print("removed", "non-reviewed", f, commit, self.removed_loc_to_commit_map[f][commit])
                     non_reviewed_lines += cur
                     non_reviewed_commits.add(commit)
 

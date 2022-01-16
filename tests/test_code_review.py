@@ -350,7 +350,6 @@ def test_code_review_tokio_c():
     assert stats.reviewed_commit_count == 12
 
 
-# @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_chalk():
     ca = CodeReviewAnalysis(NPM, "chalk", "4.1.2", "5.0.0")
     assert not ca.phantom_files
@@ -359,9 +358,8 @@ def test_code_review_chalk():
     # file renamed makes cl and al,rl different
 
     stats = ca.stats
-    stats.print()
-    assert stats.reviewed_lines == 539
-    assert stats.non_reviewed_lines == 900
+    assert stats.reviewed_lines == 375
+    assert stats.non_reviewed_lines == 1075
     assert stats.total_commit_count == 26
     assert stats.reviewed_commit_count == 11
 
@@ -403,21 +401,49 @@ def test_code_review_safe_buffer():
     assert stats.non_reviewed_lines == 24
 
 
-# @pytest.mark.skip(reason="to limit API calls")
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_source_map():
     ca = CodeReviewAnalysis(NPM, "source-map", "0.7.3", "0.8.0-beta.0")
     assert not ca.phantom_files
-    assert not ca.phantom_lines
+    assert not ca.phantom_lines 
 
-    # REMOVED FILES IN REGISTRY DIFF
+    cal = 0
+    for f in ca.added_loc_to_commit_map.keys():
+        for c in ca.added_loc_to_commit_map[f].keys():
+            cal += len(ca.added_loc_to_commit_map[f][c])
+    assert cal == 475
+
+
+    al = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                al += ca.registry_diff[f][l].additions
+    
+    assert al == 482
+                
+
+
+    crl = 0
+    for f in ca.removed_loc_to_commit_map.keys():
+        for c in ca.removed_loc_to_commit_map[f].keys():
+            crl += len(ca.removed_loc_to_commit_map[f][c])
+
+    assert crl == 3693
+
+    rl = 0
+    for f in ca.registry_diff.keys():
+        if f not in ca.phantom_files:
+            for l in ca.registry_diff[f].keys():
+                rl += ca.registry_diff[f][l].deletions
+    
+    assert rl == 3699
 
     stats = ca.stats
-    print(stats.print())
-    print(len(ca.removed_files_in_registry))
-    assert stats.reviewed_lines == 3387
-    assert stats.non_reviewed_lines == 781
-    assert stats.total_commit_count == 14
-    assert stats.reviewed_commit_count == 9
+    assert stats.reviewed_lines == 3441
+    assert stats.non_reviewed_lines == 727
+    assert stats.total_commit_count == 11
+    assert stats.reviewed_commit_count == 6
 
 
 def test_code_review_uuid():
