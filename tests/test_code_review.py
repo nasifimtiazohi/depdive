@@ -452,7 +452,6 @@ def test_code_review_babel():
     ca = CodeReviewAnalysis(NPM, "@babel/highlight", "7.14.5", "7.16.0")
     assert len(ca.phantom_files) == 2
     assert len(ca.phantom_lines) == 1
-    ca.stats.print()
 
     stats = ca.stats
     assert stats.phantom_lines == 1
@@ -714,7 +713,14 @@ def test_code_review_deepmerge():
 @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_xmlbuilder():
     ca = CodeReviewAnalysis(NPM, "xmlbuilder", "15.1.0", "15.1.1")
-    ca.stats.print()
+    stats = ca.stats
+    assert stats.phantom_files == 39
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 0
+    assert stats.non_reviewed_lines == 10
+    assert stats.total_commit_count == 4
+    assert stats.reviewed_commit_count == 0
 
 
 @pytest.mark.skip(reason="to limit API calls")
@@ -762,8 +768,6 @@ def test_code_review_signature():
 def test_code_review_mlflow():
     ca = CodeReviewAnalysis(PYPI, "mlflow", "1.21.0", "1.22.0")
     stats = ca.stats
-    stats.print()
-
     assert stats.phantom_files == 66
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
