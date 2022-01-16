@@ -167,8 +167,6 @@ class CodeReviewAnalysis:
                     repository_diff.repo_path, repo_f, end_commit=repository_diff.new_version_commit
                 )
 
-            
-
             phantom_lines = self._get_phantom_lines_in_a_file(
                 registry_file_diff, repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
             )
@@ -187,7 +185,6 @@ class CodeReviewAnalysis:
 
             if phantom_lines:
                 self.phantom_lines[f] = phantom_lines
-
 
     def _filter_out_phantom_files(self, registry_diff):
         for pf in self.phantom_files:
@@ -212,7 +209,6 @@ class CodeReviewAnalysis:
             old_version_commit=registry_diff.old_version_git_sha,
             new_version_commit=registry_diff.new_version_git_sha,
         )
-
 
         # checking package directory
         if repository_diff.old_version_subdir != repository_diff.new_version_subdir:

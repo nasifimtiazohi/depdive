@@ -72,7 +72,6 @@ def test_code_review_nix():
     # can't compare mapped loc to registry diff
 
     stats = ca.stats
-    stats.print()
     assert stats.reviewed_lines == 5677
     assert stats.non_reviewed_lines == 395
     assert stats.total_commit_count == 154
@@ -405,7 +404,7 @@ def test_code_review_safe_buffer():
 def test_code_review_source_map():
     ca = CodeReviewAnalysis(NPM, "source-map", "0.7.3", "0.8.0-beta.0")
     assert not ca.phantom_files
-    assert not ca.phantom_lines 
+    assert not ca.phantom_lines
 
     cal = 0
     for f in ca.added_loc_to_commit_map.keys():
@@ -413,16 +412,13 @@ def test_code_review_source_map():
             cal += len(ca.added_loc_to_commit_map[f][c])
     assert cal == 475
 
-
     al = 0
     for f in ca.registry_diff.keys():
         if f not in ca.phantom_files:
             for l in ca.registry_diff[f].keys():
                 al += ca.registry_diff[f][l].additions
-    
-    assert al == 482
-                
 
+    assert al == 482
 
     crl = 0
     for f in ca.removed_loc_to_commit_map.keys():
@@ -436,7 +432,7 @@ def test_code_review_source_map():
         if f not in ca.phantom_files:
             for l in ca.registry_diff[f].keys():
                 rl += ca.registry_diff[f][l].deletions
-    
+
     assert rl == 3699
 
     stats = ca.stats
