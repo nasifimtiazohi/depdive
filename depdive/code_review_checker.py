@@ -20,11 +20,11 @@ class GitHubAPIUnknownObject(Exception):
 
 
 class CodeReviewCategory(Enum):
-    GitHubReview = 1
-    DifferentMerger = 2
-    DifferentCommitter = 3
-    GerritReview = 3
-    ProwReview = 4
+    GitHubReview = "GitHubReview"
+    DifferentMerger = "DifferentMerger"
+    DifferentCommitter = "DifferentCommitter"
+    GerritReview = "GerritReview"
+    ProwReview = "ProwReview"
 
 
 class DifferentCommitterMetadata:
