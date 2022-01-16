@@ -21,7 +21,7 @@ def get_repository_diff_stats(diff):
 def test_repository_diff():
     assert get_repository_diff_stats(
         RepositoryDiff(CARGO, "tokio", "https://github.com/tokio-rs/tokio", "1.8.4", "1.9.0").diff
-    ) == (53, 92, 4376, 3733, 3015)
+    ) == (62, 94, 4534, 4298, 3371)
 
     assert get_repository_diff_stats(
         RepositoryDiff(

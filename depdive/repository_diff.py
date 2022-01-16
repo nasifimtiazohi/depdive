@@ -40,6 +40,7 @@ class MultipleCommitFileChangeData:
         self.is_rename: bool = False
         self.old_name: str = None
 
+        self.commits = set()
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
@@ -191,6 +192,7 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
             for line in diff[file].changed_lines.keys():
                 files[file].changed_lines[line] = files[file].changed_lines.get(line, {})
                 assert commit not in files[file].changed_lines[line]
+                files[file].commits.add(commit)
                 files[file].changed_lines[line][commit] = diff[file].changed_lines[line]
 
     merged_files = set()  # keep track of merged file to avoid infinite recursion
@@ -207,6 +209,7 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                     for c in files[old_f].changed_lines[l]:
                         if c not in files[f].changed_lines[l]:
                             files[f].changed_lines[l][c] = files[old_f].changed_lines[l][c]
+            files[f].commits |= files[old_f].commits
 
         return files[f]
 

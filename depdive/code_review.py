@@ -253,7 +253,7 @@ class CodeReviewAnalysis:
 
             c2c = git_blame(repository_diff.repo_path, repo_f, repository_diff.new_version_commit)
             for commit in list(c2c.keys()):
-                if commit not in repository_diff.commits:
+                if commit not in repository_diff.commits and commit not in repository_diff.diff[repo_f].commits:
                     c2c.pop(commit)
                 else:
                     c2c[commit] = [process_whitespace(l) for l in c2c[commit]]
