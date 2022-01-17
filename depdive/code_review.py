@@ -231,15 +231,13 @@ class CodeReviewAnalysis:
 
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
-        self.common_starter_commit = repository_diff.common_starter_commit
 
         self.map_commit_to_added_lines(repository_diff, registry_diff)
         self.map_commit_to_removed_lines(repository_diff, registry_diff)
 
-        for repo_f in repository_diff.diff.keys():
-            for commit in repository_diff.diff[repo_f].commits:
-                if commit not in self.commit_review_info:
-                    self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
+        for commit in repository_diff.commits:
+            if commit not in self.commit_review_info:
+                self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
 
         self.stats = self.get_stats()
         repository_diff.cleanup()
@@ -268,10 +266,6 @@ class CodeReviewAnalysis:
             self.added_loc_to_commit_map[f] = c2c
 
     def map_commit_to_removed_lines(self, repository_diff, registry_diff):
-        starter_point_file_list = get_repository_file_list(
-            repository_diff.repo_path, repository_diff.common_starter_commit
-        )
-
         files_with_removed_lines = set()
         for f in registry_diff.diff.keys():
             if registry_diff.diff[f].source_file:
@@ -279,28 +273,26 @@ class CodeReviewAnalysis:
 
         for f in files_with_removed_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
-            if (
-                # file may not be in the common starter point at all
-                repo_f not in starter_point_file_list
-                or (
-                    # ignore files with only phantom line changes
-                    f in self.phantom_lines.keys()
-                    and repo_f not in repository_diff.diff.keys()
-                )
-                or repo_f not in repository_diff.diff.keys()
-            ):
+            # file may not be in version diff in repo
+            # possible explanations:
+            # 1. file may not be in the common starter point at all
+            # 2. phantom line changes
+            if repo_f not in repository_diff.diff.keys():
                 continue
 
             c2c = git_blame_delete(
                 repository_diff.repo_path,
                 repo_f,
-                repository_diff.common_starter_commit,
+                repository_diff.common_ancestor_commit_new_and_old_version,
                 repository_diff.new_version_commit,
                 repository_diff.diff[repo_f],
             )
-            for k in list(c2c.keys()):
-                c2c[k] = [process_whitespace(l) for l in c2c[k]]
-                c2c[k] = [l for l in c2c[k] if l]
+            for commit in list(c2c.keys()):
+                if commit not in repository_diff.commits:
+                    c2c.pop(commit)
+                else:
+                    c2c[commit] = [process_whitespace(l) for l in c2c[commit]]
+                    c2c[commit] = [l for l in c2c[commit] if l]
 
             self.removed_loc_to_commit_map[f] = c2c
 

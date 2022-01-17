@@ -40,7 +40,6 @@ class MultipleCommitFileChangeData:
         self.is_rename: bool = False
         self.old_name: str = None
 
-        self.commits = set()
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
@@ -192,7 +191,6 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
             for line in diff[file].changed_lines.keys():
                 files[file].changed_lines[line] = files[file].changed_lines.get(line, {})
                 assert commit not in files[file].changed_lines[line]
-                files[file].commits.add(commit)
                 files[file].changed_lines[line][commit] = diff[file].changed_lines[line]
 
     merged_files = set()  # keep track of merged file to avoid infinite recursion
@@ -209,7 +207,6 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                     for c in files[old_f].changed_lines[l]:
                         if c not in files[f].changed_lines[l]:
                             files[f].changed_lines[l][c] = files[old_f].changed_lines[l][c]
-            files[f].commits |= files[old_f].commits
 
         return files[f]
 
@@ -295,7 +292,7 @@ def is_same_commit(sha_a, sha_b):
     return sha_a.startswith(sha_b) or sha_b.startswith(sha_a)
 
 
-def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
+def git_blame_delete(repo_path, filepath, start_commit, new_version_commit, repo_diff):
     filelines = get_file_lines(repo_path, start_commit, filepath)
 
     p_repo_diff = {}
@@ -307,7 +304,7 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
             p_repo_diff[p_l][c].add(repo_diff.changed_lines[l][c])
 
     cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
-        path=repo_path, start_commit=start_commit, end_commit=end_commit, fname=filepath
+        path=repo_path, start_commit=start_commit, end_commit=new_version_commit, fname=filepath
     )
     with os.popen(cmd) as process:
         blame = process.readlines()
@@ -335,30 +332,28 @@ def git_blame_delete(repo_path, filepath, start_commit, end_commit, repo_diff):
                 if commit in p_repo_diff[p_l].keys() and p_repo_diff[p_l][commit].deletions > 0:
                     return commit
 
-    try:
-        new_version_filelines = [process_whitespace(l) for l in get_file_lines(repo_path, end_commit, filepath)]
-    except:
-        # the file is not present in the new version
-        new_version_filelines = []
-
     c2c = defaultdict(list)
     for commit in blame_map.keys():
         assert commit.isalnum()
-        if is_same_commit(commit, end_commit):
+        if is_same_commit(commit, new_version_commit):
             continue
 
-        next_commits = get_doubledot_inbetween_commits(repo_path, commit, end_commit)[::-1]
+        next_commits = get_doubledot_inbetween_commits(repo_path, commit, new_version_commit)[::-1]
         for i in blame_map[commit]:
             line = process_whitespace(filelines[i])
             next_commit = find_removal_commit(line, next_commits)
             if next_commit:
                 c2c[next_commit] += [filelines[i]]
             else:
-                assert not line or line in new_version_filelines
+                # possible explanations
+                # 1. blank line
+                # 2. deletion commit present in both old_version_commit and new_version_commit
+                # 3. line present in new version, git blame error due to bulk change somewhere
+                pass
     return c2c
 
 
-def get_common_start_point(repo_path, start_commit, end_commit):
+def get_common_ancestor(repo_path, start_commit, end_commit):
     try:
         cmd = "cd {path};git rev-parse $(git log --pretty=%H {start_commit}..{end_commit} | tail -1)^".format(
             path=repo_path, start_commit=start_commit, end_commit=end_commit
@@ -402,11 +397,11 @@ class RepositoryDiff:
 
         self.old_version_subdir = None  # package directory at the old version commit
         self.new_version_subdir = None  # package directory at the new version commit
+        self.common_ancestor_commit_new_and_old_version = None
 
         self.commits = None
         self.reverse_commits = None
 
-        self.common_starter_commit = None
         self.diff = None  # diff across individual commits
         self.new_version_file_list = None
         self.single_diff = None  # single diff from old to new
@@ -441,13 +436,11 @@ class RepositoryDiff:
             if not self.old_version_commit or not self.new_version_commit:
                 raise ReleaseCommitNotFound
 
-        self.common_starter_commit = get_common_start_point(
+        self.common_ancestor_commit_new_and_old_version = get_common_ancestor(
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
-        self.commits = get_doubledot_inbetween_commits(
-            self.repo_path, self.common_starter_commit, self.new_version_commit
-        )
+        self.commits = get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
         self.reverse_commits = get_doubledot_inbetween_commits(
             self.repo_path, self.new_version_commit, self.old_version_commit
         )

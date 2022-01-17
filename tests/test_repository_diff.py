@@ -166,9 +166,9 @@ def test_repository_common_ancestor():
     end_commit = "b280c6d"
     with tempfile.TemporaryDirectory() as repo_path:
         Repo.clone_from(repository, repo_path)
-        assert get_common_start_point(repo_path, start_commit, end_commit) == "677107d8d9278265798c5efdc75374a25b41a4b8"
+        assert get_common_ancestor(repo_path, start_commit, end_commit) == "677107d8d9278265798c5efdc75374a25b41a4b8"
 
-        get_common_start_point(
+        get_common_ancestor(
             repo_path, "714704253443787cc0c9a395b6d94947bcf26687", start_commit
         ) == "714704253443787cc0c9a395b6d94947bcf26687"
 
