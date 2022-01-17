@@ -237,7 +237,6 @@ def test_code_review_quote():
     assert stats.reviewed_commit_count == 2
 
 
-@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_syn():
     ca = CodeReviewAnalysis(
         CARGO,
@@ -278,7 +277,6 @@ def test_code_review_syn():
     stats.reviewed_lines == 0
 
 
-@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_minimist():
     ca = CodeReviewAnalysis(
         NPM,
