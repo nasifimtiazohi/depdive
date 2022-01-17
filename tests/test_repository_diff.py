@@ -41,12 +41,12 @@ def test_repository_functions():
         assert len(files) == 82
         assert "package_locator/locator.py" not in files
 
-        commit = "88a6a88c460169ccc904dcf52e9ebb1d09614c68"
-        diff_commit_mapping = get_full_file_history(repo_path, filepath, end_commit=commit)[0]
-        commits = set()
-        for k in diff_commit_mapping.changed_lines.keys():
-            commits |= set(diff_commit_mapping.changed_lines[k].keys())
-        assert len(commits) == 10
+        # commit = "88a6a88c460169ccc904dcf52e9ebb1d09614c68"
+        # diff_commit_mapping = get_full_file_history(repo_path, filepath, end_commit=commit)[0]
+        # commits = set()
+        # for k in diff_commit_mapping.changed_lines.keys():
+        #     commits |= set(diff_commit_mapping.changed_lines[k].keys())
+        # assert len(commits) == 10
 
 
 def test_repository_get_commits():

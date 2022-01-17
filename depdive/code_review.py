@@ -6,7 +6,6 @@ from depdive.registry_diff import get_registry_version_diff
 from depdive.repository_diff import (
     RepositoryDiff,
     SingleCommitFileChangeData,
-    get_full_file_history,
     get_repository_file_list,
     git_blame,
     git_blame_delete,
@@ -176,9 +175,8 @@ class CodeReviewAnalysis:
                 repo_f not in repository_diff.diff.keys() or not repository_diff.diff[repo_f].is_rename
             ):
                 # possible explanation: newly included file to be published - get all the commits from the beginning
-                repository_diff.diff[repo_f], repository_diff.single_diff[repo_f] = get_full_file_history(
-                    repository_diff.repo_path, repo_f, end_commit=repository_diff.new_version_commit
-                )
+                # get full file history for such files
+                repository_diff.get_full_file_history(repo_f, end_commit=repository_diff.new_version_commit)
 
             phantom_lines = self._get_phantom_lines_in_a_file(
                 registry_file_diff, repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
@@ -263,7 +261,7 @@ class CodeReviewAnalysis:
 
             c2c = git_blame(repository_diff.repo_path, repo_f, repository_diff.new_version_commit)
             for commit in list(c2c.keys()):
-                if commit not in repository_diff.commits:
+                if commit not in repository_diff.diff[repo_f].commits:
                     c2c.pop(commit)
                 else:
                     c2c[commit] = [process_whitespace(l) for l in c2c[commit]]

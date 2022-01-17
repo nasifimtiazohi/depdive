@@ -40,6 +40,7 @@ class MultipleCommitFileChangeData:
         self.is_rename: bool = False
         self.old_name: str = None
 
+        self.commits = set()
         self.changed_lines: dict[str, dict[str, LineDelta]] = {}
 
 
@@ -191,6 +192,7 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
             for line in diff[file].changed_lines.keys():
                 files[file].changed_lines[line] = files[file].changed_lines.get(line, {})
                 assert commit not in files[file].changed_lines[line]
+                files[file].commits.add(commit)
                 files[file].changed_lines[line][commit] = diff[file].changed_lines[line]
 
     merged_files = set()  # keep track of merged file to avoid infinite recursion
@@ -207,7 +209,7 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                     for c in files[old_f].changed_lines[l]:
                         if c not in files[f].changed_lines[l]:
                             files[f].changed_lines[l][c] = files[old_f].changed_lines[l][c]
-
+            files[f].commits |= files[old_f].commits
         return files[f]
 
     # converge with old name in the case of renamed files
@@ -251,21 +253,6 @@ def get_repository_file_list(repo_path, commit):
 
     repo.git.checkout(head, force=True)
     return set(filelist)
-
-
-def get_full_file_history(repo_path, filepath, end_commit="HEAD"):
-    """ get commit history of filepath upto given commit point """
-    commits = get_all_commits_on_file(repo_path, filepath, end_commit=end_commit)
-
-    diff_commit_mapping = get_commit_diff_stats_from_repo(repo_path, commits)
-
-    single_diff = SingleCommitFileChangeData(filepath)
-    lines = get_file_lines(repo_path, end_commit, filepath)
-    for l in lines:
-        single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
-        single_diff.changed_lines[l].additions += 1
-
-    return diff_commit_mapping[filepath], single_diff
 
 
 def get_file_lines(repo_path, commit, filepath):
@@ -440,11 +427,13 @@ class RepositoryDiff:
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
-        self.commits = get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
-        self.reverse_commits = get_doubledot_inbetween_commits(
-            self.repo_path, self.new_version_commit, self.old_version_commit
+        self.commits = set(
+            get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
         )
-        self.diff = get_commit_diff_stats_from_repo(self.repo_path, self.commits, self.reverse_commits)
+        self.reverse_commits = set(
+            get_doubledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit)
+        )
+        self.diff = get_commit_diff_stats_from_repo(self.repo_path, list(self.commits), list(self.reverse_commits))
 
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
 
@@ -462,6 +451,22 @@ class RepositoryDiff:
         self.single_diff = get_diff_files(
             get_inbetween_commit_diff(self.repo_path, self.old_version_commit, self.new_version_commit)
         )
+
+    def get_full_file_history(self, filepath, end_commit="HEAD"):
+        """ get commit history of filepath upto given commit point """
+        commits = get_all_commits_on_file(self.repo_path, filepath, end_commit=end_commit)
+        self.commits |= set(commits)
+
+        diff_commit_mapping = get_commit_diff_stats_from_repo(self.repo_path, commits)
+
+        single_diff = SingleCommitFileChangeData(filepath)
+        lines = get_file_lines(self.repo_path, end_commit, filepath)
+        for l in lines:
+            single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
+            single_diff.changed_lines[l].additions += 1
+
+        self.diff[filepath] = diff_commit_mapping[filepath]
+        self.single_diff[filepath] = single_diff
 
     def traverse_beyond_new_version_commit(self, filepath, phantom_lines):
         """

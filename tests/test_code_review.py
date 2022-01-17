@@ -75,10 +75,11 @@ def test_code_review_nix():
     # can't compare mapped loc to registry diff
 
     stats = ca.stats
-    assert stats.reviewed_lines == 5677
-    assert stats.non_reviewed_lines == 395
-    assert stats.total_commit_count == 154
-    assert stats.reviewed_commit_count == 120
+    stats.print()
+    assert stats.reviewed_lines == 2109
+    assert stats.non_reviewed_lines == 262
+    assert stats.total_commit_count == 73
+    assert stats.reviewed_commit_count == 61
     assert len(ca.removed_files_in_registry) == 43
 
 
@@ -199,6 +200,9 @@ def test_code_review_quote():
     )
     assert not ca.phantom_files
     assert not ca.phantom_lines
+
+    stats = ca.stats
+    stats.print()
 
     cl = 0
     for f in ca.added_loc_to_commit_map.keys():
