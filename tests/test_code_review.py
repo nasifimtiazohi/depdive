@@ -60,7 +60,10 @@ def test_code_review_tokio_a():
     # can't compare mapped loc to registry diff
 
     stats = ca.stats
+    assert stats.reviewed_lines == 3399
     assert stats.non_reviewed_lines == 0
+    assert stats.total_commit_count == 23
+    assert stats.reviewed_commit_count == 23
 
 
 def test_code_review_nix():

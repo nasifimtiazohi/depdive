@@ -52,6 +52,12 @@ class DepdiveStats:
 
     def print(self):
         print(self.reviewed_commits, self.non_reviewed_commits)
+        print(
+            self.added_reviewed_lines,
+            self.added_non_reviewed_lines,
+            self.removed_reviewed_lines,
+            self.removed_non_reviewed_lines,
+        )
         print(self.phantom_files, self.files_with_phantom_lines, self.phantom_lines)
         print(self.reviewed_lines, self.non_reviewed_lines, self.total_commit_count, self.reviewed_commit_count)
 
@@ -266,6 +272,10 @@ class CodeReviewAnalysis:
             self.added_loc_to_commit_map[f] = c2c
 
     def map_commit_to_removed_lines(self, repository_diff, registry_diff):
+        starter_point_file_list = get_repository_file_list(
+            repository_diff.repo_path, repository_diff.common_ancestor_commit_new_and_old_version
+        )
+
         files_with_removed_lines = set()
         for f in registry_diff.diff.keys():
             if registry_diff.diff[f].source_file:
@@ -277,7 +287,7 @@ class CodeReviewAnalysis:
             # possible explanations:
             # 1. file may not be in the common starter point at all
             # 2. phantom line changes
-            if repo_f not in repository_diff.diff.keys():
+            if repo_f not in starter_point_file_list or repo_f not in repository_diff.diff.keys():
                 continue
 
             c2c = git_blame_delete(
