@@ -824,3 +824,15 @@ def test_code_review_botocore():
     assert stats.non_reviewed_lines == 23
     assert stats.total_commit_count == 4
     assert stats.reviewed_commit_count == 0
+
+
+def test_code_review_thread_safe():
+    ca = CodeReviewAnalysis(RUBYGEMS, "thread_safe", "0.3.5", "0.3.6")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 1
+    assert stats.phantom_lines == 1
+    assert stats.reviewed_lines == 2992
+    assert stats.non_reviewed_lines == 2
+    assert stats.total_commit_count == 11
+    assert stats.reviewed_commit_count == 10

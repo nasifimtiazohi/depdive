@@ -240,11 +240,14 @@ class CodeReviewAnalysis:
         self.map_commit_to_removed_lines(repository_diff, registry_diff)
 
         for f in registry_diff.diff.keys():
-            repo_f = self.get_repo_path_from_registry_path(f)
-            if repo_f in repository_diff.diff.keys():
-                for commit in repository_diff.diff[repo_f].commits:
-                    if commit not in self.commit_review_info:
-                        self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
+            repo_files = [self.get_repo_path_from_registry_path(f)]
+            if registry_diff.diff[f].is_rename:
+                repo_files += [self.get_repo_path_from_registry_path(registry_diff.diff[f].source_file)]
+            for repo_f in repo_files:
+                if repo_f in repository_diff.diff.keys():
+                    for commit in repository_diff.diff[repo_f].commits:
+                        if commit not in self.commit_review_info:
+                            self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
 
         self.stats = self.get_stats()
         repository_diff.cleanup()
