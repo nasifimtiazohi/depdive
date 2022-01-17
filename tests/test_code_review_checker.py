@@ -1,6 +1,7 @@
 from depdive.code_review_checker import CommitReviewInfo, CodeReviewCategory
 import os
 import json
+import pytest
 
 
 def test_cr_tokio():
@@ -55,3 +56,9 @@ def test_cr_pry_multiple_token():
 
     cr = CommitReviewInfo("https://github.com/pry/pry/", "60e84ee1d80919b0cc41268a878ffc9e78f903ac")
     assert cr.review_category == CodeReviewCategory.DifferentMerger
+
+
+@pytest.mark.skip(reason="botocore is a tricky repo")
+def test_cr_botocore():
+    cr = CommitReviewInfo("https://github.com/boto/botocore", "e356b9fff45125be2b0d72e3c6d770344d8dd6a6")
+    print(cr.review_category.value)

@@ -1,3 +1,4 @@
+from curses import meta
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
@@ -195,13 +196,11 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
                 files[file].commits.add(commit)
                 files[file].changed_lines[line][commit] = diff[file].changed_lines[line]
 
-    merged_files = set()  # keep track of merged file to avoid infinite recursion
-
-    def recurring_merge_rename(f):
+    def recurring_merge_rename(f, merged_files):
         merged_files.add(f)
         if files[f].is_rename and files[f].old_name in files.keys() and files[f].old_name not in merged_files:
             old_f = files[f].old_name
-            files[old_f] = recurring_merge_rename(old_f)
+            files[old_f] = recurring_merge_rename(old_f, merged_files)
             for l in files[old_f].changed_lines.keys():
                 if l not in files[f].changed_lines:
                     files[f].changed_lines[l] = files[old_f].changed_lines[l]
@@ -214,23 +213,19 @@ def get_commit_diff_stats_from_repo(repo_path, commits, reverse_commits=[]):
 
     # converge with old name in the case of renamed files
     for f in files.keys():
-        files[f] = recurring_merge_rename(f)
+        files[f] = recurring_merge_rename(f, set())
 
-    # make old names point to the same commits as the new
-    # TODO: make this logic more concise?
-    merged_files = set()  # keep track of merged file to avoid infinite recursion
-
-    def get_all_old_names(f):
+    def get_all_old_names(f, merged_files):
         merged_files.add(f)
         if f not in files or not files[f].is_rename or files[f].old_name in merged_files:
             return []
         else:
-            return [files[f].old_name] + get_all_old_names(files[f].old_name)
+            return [files[f].old_name] + get_all_old_names(files[f].old_name, merged_files)
 
     rename_map = {}
     all_old_names = set()
     for f in files.keys():
-        rename_map[f] = set(get_all_old_names(f))
+        rename_map[f] = set(get_all_old_names(f, set()))
         all_old_names |= rename_map[f]
 
     for f in list(files.keys()):

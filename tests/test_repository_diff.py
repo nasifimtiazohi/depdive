@@ -21,7 +21,7 @@ def get_repository_diff_stats(diff):
 def test_repository_diff():
     assert get_repository_diff_stats(
         RepositoryDiff(CARGO, "tokio", "https://github.com/tokio-rs/tokio", "1.8.4", "1.9.0").diff
-    ) == (62, 94, 4534, 4298, 3371)
+    ) == (53, 93, 4522, 3865, 3339)
 
     assert get_repository_diff_stats(
         RepositoryDiff(
@@ -41,6 +41,7 @@ def test_repository_functions():
         assert len(files) == 82
         assert "package_locator/locator.py" not in files
 
+        # TODO: test self.get_full_file_history
         # commit = "88a6a88c460169ccc904dcf52e9ebb1d09614c68"
         # diff_commit_mapping = get_full_file_history(repo_path, filepath, end_commit=commit)[0]
         # commits = set()

@@ -241,9 +241,10 @@ class CodeReviewAnalysis:
 
         for f in registry_diff.diff.keys():
             repo_f = self.get_repo_path_from_registry_path(f)
-            for commit in repository_diff.diff[repo_f].commits:
-                if commit not in self.commit_review_info:
-                    self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
+            if repo_f in repository_diff.diff.keys():
+                for commit in repository_diff.diff[repo_f].commits:
+                    if commit not in self.commit_review_info:
+                        self.commit_review_info[commit] = CommitReviewInfo(self.repository, commit)
 
         self.stats = self.get_stats()
         repository_diff.cleanup()
