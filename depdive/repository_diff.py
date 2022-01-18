@@ -1,4 +1,3 @@
-from curses import meta
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
@@ -290,7 +289,9 @@ def git_blame_delete(repo_path, filepath, start_commit, new_version_commit, repo
     )
     with os.popen(cmd) as process:
         blame = process.readlines()
-    assert len(blame) == len(filelines)
+
+    if not len(blame) == len(filelines):
+        raise GitError
 
     blame = [line.split(" ")[0] for line in blame]
     blame = [line.removeprefix("^") for line in blame]
@@ -422,6 +423,8 @@ class RepositoryDiff:
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
+        print(self.old_version_commit, self.new_version_commit)
+
         self.commits = set(
             get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
         )
@@ -492,7 +495,7 @@ class RepositoryDiff:
             return False
 
         # first take a look at the commis afterward new_version_commits
-        commits = get_all_commits_on_file(self.repo_path, filepath, start_commit=new_version_commit)[::-1]
+        commits = get_doubledot_inbetween_commits(self.repo_path, new_version_commit)[::-1]
         if commits:
             commits = commits[1:] if commits[0] == new_version_commit else commits
             for commit in commits:
@@ -506,8 +509,8 @@ class RepositoryDiff:
                             phantom_lines[p_line].subtract(commit_diff[line])
                             if phantom_lines[p_line].additions == 0:
                                 phantom_lines.pop(p_line)
-                            new_version_commit = commit
-                            commit_outside_boundary = False
+                                new_version_commit = commit
+                                commit_outside_boundary = False
                 if commit_outside_boundary or not phantom_lines:
                     break
 

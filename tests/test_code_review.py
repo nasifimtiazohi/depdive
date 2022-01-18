@@ -600,6 +600,7 @@ def test_code_review_pry():
     assert stats.reviewed_commit_count == 3
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_pundit():
     ca = CodeReviewAnalysis(RUBYGEMS, "pundit", "2.1.0", "2.1.1")
     stats = ca.stats
@@ -826,6 +827,7 @@ def test_code_review_botocore():
     assert stats.reviewed_commit_count == 0
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_thread_safe():
     ca = CodeReviewAnalysis(RUBYGEMS, "thread_safe", "0.3.5", "0.3.6")
     stats = ca.stats
@@ -836,3 +838,18 @@ def test_code_review_thread_safe():
     assert stats.non_reviewed_lines == 2
     assert stats.total_commit_count == 11
     assert stats.reviewed_commit_count == 10
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_ansi():
+    with pytest.raises(GitError):
+        ca = CodeReviewAnalysis(RUBYGEMS, "ansi", "1.4.3", "1.5.0")
+
+
+def test_code_review_clumnize():
+    ca = CodeReviewAnalysis(RUBYGEMS, "columnize", "0.8.9", "0.9.0")
+
+
+@pytest.mark.skip(reason="botocore is a tricky repo")
+def test_temp():
+    ca = CodeReviewAnalysis(PYPI, "tensorflow", "2.6.2", "2.7.0")
