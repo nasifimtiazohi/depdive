@@ -814,6 +814,8 @@ def test_code_review_botocore():
         if f not in ca.phantom_files:
             for l in ca.registry_diff[f].keys():
                 rl += ca.registry_diff[f][l].deletions
+                if ca.registry_diff[f][l].deletions > 0:
+                    print(f, l)
 
     assert cal == al
     assert crl == rl - 1
@@ -856,6 +858,8 @@ def test_code_review_columnize():
     assert stats.non_reviewed_lines == 8
     assert stats.total_commit_count == 3
     assert stats.reviewed_commit_count == 1
+
+
 @pytest.mark.skip(reason="botocore is a tricky repo")
 def test_temp():
     ca = CodeReviewAnalysis(PYPI, "tensorflow", "2.6.2", "2.7.0")
