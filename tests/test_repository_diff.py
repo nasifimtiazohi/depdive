@@ -21,16 +21,19 @@ def get_repository_diff_stats(diff):
 def test_repository_diff():
     assert get_repository_diff_stats(
         RepositoryDiff(CARGO, "tokio", "https://github.com/tokio-rs/tokio", "1.8.4", "1.9.0").diff
-    ) == (53, 93, 4522, 3865, 3339)
+    ) == (47, 80, 4146, 3765, 3235)
 
     assert get_repository_diff_stats(
         RepositoryDiff(
             PYPI, "package-locator", "https://github.com/nasifimtiazohi/package-locator", "0.4.0", "0.4.1"
         ).diff
-    ) == (2, 10, 182, 102, 120)
+    ) == (2, 10, 145, 102, 120)
 
 
 def test_repository_functions():
+    test_rd = RepositoryDiff(
+        PYPI, "package-locator", "https://github.com/nasifimtiazohi/package-locator", "0.4.0", "0.4.1"
+    )
     repository = "https://github.com/nasifimtiazohi/package-locator"
     with tempfile.TemporaryDirectory() as repo_path:
         Repo.clone_from(repository, repo_path)
@@ -41,16 +44,18 @@ def test_repository_functions():
         assert len(files) == 82
         assert "package_locator/locator.py" not in files
 
-        # TODO: test self.get_full_file_history
-        # commit = "88a6a88c460169ccc904dcf52e9ebb1d09614c68"
-        # diff_commit_mapping = get_full_file_history(repo_path, filepath, end_commit=commit)[0]
-        # commits = set()
-        # for k in diff_commit_mapping.changed_lines.keys():
-        #     commits |= set(diff_commit_mapping.changed_lines[k].keys())
-        # assert len(commits) == 10
+        commit = "88a6a88c460169ccc904dcf52e9ebb1d09614c68"
+        test_rd.get_full_file_history(filepath, end_commit=commit)
+        diff_commit_mapping = test_rd.diff[filepath]
+        commits = set()
+        for k in diff_commit_mapping.changed_lines.keys():
+            commits |= set(diff_commit_mapping.changed_lines[k].keys())
+        assert len(commits) == 10
 
 
 def test_repository_get_commits():
+    repository = "https://github.com/chalk/chalk"
+    test_rd = RepositoryDiff(NPM, "chalk", repository, "4.0.0", "5.0.0")
     repository = "https://github.com/chalk/chalk"
     with tempfile.TemporaryDirectory() as repo_path:
         Repo.clone_from(repository, repo_path)
@@ -109,7 +114,7 @@ def test_repository_get_commits():
         uni_diff_text = get_commit_diff_for_file(
             repo_path, ".editorconfig", commit="cffc3552b0853c75f41b92ed2c032988df018442"
         )
-        d = get_diff_files(uni_diff_text)
+        d = test_rd.get_diff_files(uni_diff_text)
         lines = 0
         for f in d.keys():
             lines += len(d[f].changed_lines.keys())
@@ -136,7 +141,7 @@ def test_repository_get_commits():
             ' \t"repository": "chalk/chalk",',
         ]
 
-        c2c = git_blame(repo_path, file, end_commit)
+        c2c = test_rd.git_blame(file, end_commit)
 
         lines = 0
         for c in c2c.keys():
@@ -153,7 +158,7 @@ def test_repository_git_blame_delete():
     file = "package.json"
     with tempfile.TemporaryDirectory() as repo_path:
         Repo.clone_from(repository, repo_path)
-        c2c = git_blame_delete(repo_path, file, start_commit, end_commit, repo_diff.diff[file])
+        c2c = repo_diff.git_blame_delete(file, start_commit, end_commit)
         lines = 0
         for c in c2c.keys():
             lines += len(c2c[c])

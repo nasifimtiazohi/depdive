@@ -209,7 +209,6 @@ class CodeReviewAnalysis:
             self._locate_repository()
 
         registry_diff = get_registry_version_diff(self.ecosystem, self.package, self.old_version, self.new_version)
-        print("A")
         repository_diff = RepositoryDiff(
             self.ecosystem,
             self.package,
@@ -219,7 +218,7 @@ class CodeReviewAnalysis:
             old_version_commit=registry_diff.old_version_git_sha,
             new_version_commit=registry_diff.new_version_git_sha,
         )
-        print("A")
+
         # checking package directory
         if repository_diff.old_version_subdir != repository_diff.new_version_subdir:
             raise PackageDirectoryChanged
@@ -231,14 +230,12 @@ class CodeReviewAnalysis:
         self._process_phantom_files(registry_diff, repository_diff.new_version_file_list)
         self._filter_out_phantom_files(registry_diff)
         self._proccess_phantom_lines(registry_diff, repository_diff)
-        print("A")
+
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
 
         self.map_commit_to_added_lines(repository_diff, registry_diff)
-        print("A")
         self.map_commit_to_removed_lines(repository_diff, registry_diff)
-        print("A")
 
         for f in registry_diff.diff.keys():
             repo_files = [self.get_repo_path_from_registry_path(f)]
@@ -286,8 +283,6 @@ class CodeReviewAnalysis:
             if registry_diff.diff[f].source_file:
                 files_with_removed_lines.add(registry_diff.diff[f].source_file)
 
-        print(files_with_removed_lines)
-
         for f in files_with_removed_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
             # file may not be in version diff in repo
@@ -295,7 +290,6 @@ class CodeReviewAnalysis:
             # 1. file may not be in the common starter point at all
             # 2. phantom line changes
             if repo_f not in starter_point_file_list or repo_f not in repository_diff.diff.keys():
-                print("ki holo", repo_f)
                 continue
 
             c2c = repository_diff.git_blame_delete(
@@ -329,7 +323,6 @@ class CodeReviewAnalysis:
         for f in self.removed_loc_to_commit_map.keys():
             for commit in self.removed_loc_to_commit_map[f].keys():
                 cur = len(self.removed_loc_to_commit_map[f][commit])
-                print(self.removed_loc_to_commit_map[f][commit])
                 if self.commit_review_info[commit].review_category:
                     removed_reviewed_lines += cur
                     reviewed_commits.add(commit)

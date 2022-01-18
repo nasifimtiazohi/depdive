@@ -450,10 +450,7 @@ class RepositoryDiff:
             f.target_file = self.process_patch_filepath(patched_file.target_file)
 
             if not self.is_package_file(f.source_file) and not self.is_package_file(f.target_file):
-                print(patched_file.path)
                 continue
-
-            print("gese", patched_file.path)
 
             f.is_rename = patched_file.is_rename
 
@@ -521,9 +518,7 @@ class RepositoryDiff:
             if is_same_commit(commit, new_version_commit):
                 continue
 
-            print(commit, filelines[i])
-
-            next_commits = get_all_commits_on_file(self.repo_path, filepath, commit, new_version_commit)[::-1]
+            next_commits = get_doubledot_inbetween_commits(self.repo_path, commit, new_version_commit)[::-1]
             for i in blame_map[commit]:
                 line = process_whitespace(filelines[i])
                 next_commit = find_removal_commit(line, next_commits)
