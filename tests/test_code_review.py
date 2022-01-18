@@ -846,10 +846,16 @@ def test_code_review_ansi():
         ca = CodeReviewAnalysis(RUBYGEMS, "ansi", "1.4.3", "1.5.0")
 
 
-def test_code_review_clumnize():
+def test_code_review_columnize():
     ca = CodeReviewAnalysis(RUBYGEMS, "columnize", "0.8.9", "0.9.0")
-
-
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 3
+    assert stats.phantom_lines == 6
+    assert stats.reviewed_lines == 1
+    assert stats.non_reviewed_lines == 8
+    assert stats.total_commit_count == 3
+    assert stats.reviewed_commit_count == 1
 @pytest.mark.skip(reason="botocore is a tricky repo")
 def test_temp():
     ca = CodeReviewAnalysis(PYPI, "tensorflow", "2.6.2", "2.7.0")
