@@ -423,8 +423,6 @@ class RepositoryDiff:
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
 
-        print(self.old_version_commit, self.new_version_commit)
-
         self.commits = set(
             get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
         )
