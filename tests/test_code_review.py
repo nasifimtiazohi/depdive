@@ -862,5 +862,5 @@ def test_code_review_columnize():
 
 # @pytest.mark.skip(reason="botocore is a tricky repo")
 def test_temp():
-    ca = CodeReviewAnalysis(NPM, "is-callable", "1.1.5", "1.2.0")
+    ca = CodeReviewAnalysis(NPM, "whatwg-fetch", "3.5.0", "3.6.0")
     ca.stats.print()

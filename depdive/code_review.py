@@ -157,7 +157,9 @@ class CodeReviewAnalysis:
         return lc
 
     def _proccess_phantom_lines(self, registry_diff, repository_diff):
-        new_version_repo_filelist = get_repository_file_list(repository_diff.repo_path, repository_diff.new_version_commit)
+        new_version_repo_filelist = get_repository_file_list(
+            repository_diff.repo_path, repository_diff.new_version_commit
+        )
         for f in registry_diff.diff.keys():
             registry_file_diff = self._get_registry_file_line_counter(registry_diff.diff[f])
             self.registry_diff[f] = registry_file_diff
@@ -167,8 +169,10 @@ class CodeReviewAnalysis:
 
             repo_f = self.get_repo_path_from_registry_path(f)
 
-            if not registry_diff.diff[f].source_file and repo_f in new_version_repo_filelist and (
-                repo_f not in repository_diff.diff.keys() or not repository_diff.diff[repo_f].is_rename
+            if (
+                not registry_diff.diff[f].source_file
+                and repo_f in new_version_repo_filelist
+                and (repo_f not in repository_diff.diff.keys() or not repository_diff.diff[repo_f].is_rename)
             ):
                 # possible explanation: newly included file to be published - get all the commits from the beginning
                 # get full file history for such files
@@ -256,7 +260,7 @@ class CodeReviewAnalysis:
 
         for f in files_with_added_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
-
+            print(repo_f)
             # ignore files with only phantom line changes
             if f in self.phantom_lines.keys() and repo_f not in repository_diff.diff.keys():
                 continue
@@ -283,6 +287,7 @@ class CodeReviewAnalysis:
 
         for f in files_with_removed_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
+            print(repo_f)
             # file may not be in version diff in repo
             # possible explanations:
             # 1. file may not be in the common starter point at all
