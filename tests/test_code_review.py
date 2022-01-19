@@ -860,6 +860,7 @@ def test_code_review_columnize():
     assert stats.reviewed_commit_count == 1
 
 
-@pytest.mark.skip(reason="botocore is a tricky repo")
+# @pytest.mark.skip(reason="botocore is a tricky repo")
 def test_temp():
-    ca = CodeReviewAnalysis(PYPI, "tensorflow", "2.6.2", "2.7.0")
+    ca = CodeReviewAnalysis(NPM, "request", "2.84.0", "2.85.0")
+    ca.stats.print()

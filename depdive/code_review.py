@@ -132,12 +132,6 @@ class CodeReviewAnalysis:
                 self.removed_files_in_registry[f] = registry_diff.diff[f]
 
     def _get_phantom_lines_in_a_file(self, registry_file_diff, repo_file_diff):
-        # p_repo_diff = {}
-        # for l in repo_file_diff.changed_lines.keys():
-        #     p_l = process_whitespace(l)
-        #     p_repo_diff[p_l] = p_repo_diff.get(p_l, LineDelta())
-        #     p_repo_diff[p_l].add(repo_file_diff.changed_lines[l])
-
         phantom = {}
         for l in registry_file_diff:
             if (

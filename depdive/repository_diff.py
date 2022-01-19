@@ -357,17 +357,21 @@ class RepositoryDiff:
             # was merged with cur new version commit afterwards
             # if that's the case we want the merge commit
             after_commits = get_doubledot_inbetween_commits(self.repo_path, new_version_commit)[::-1]
-            if self.new_version_commit not in after_commits:
-                self.new_version_commit = new_version_commit
-            else:
+            if self.new_version_commit in after_commits:
                 idx = after_commits.index(self.new_version_commit)
                 if idx < len(after_commits) - 1:
-                    self.new_version_commit = after_commits[idx + 1]
+                    new_version_commit = after_commits[idx + 1]
                 else:
-                    assert (False, "check commit boundary checking")
+                    return False
 
-            self.build_repository_diff()
-            return True
+            # sanity check
+            new_inbetween_commits = set(
+                get_doubledot_inbetween_commits(self.repo_path, old_version_commit, new_version_commit)
+            )
+            if not self.commits - new_inbetween_commits:
+                self.new_version_commit = new_version_commit
+                self.build_repository_diff()
+                return True
 
         return False
 
