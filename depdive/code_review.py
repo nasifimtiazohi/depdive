@@ -260,7 +260,6 @@ class CodeReviewAnalysis:
 
         for f in files_with_added_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
-            print(repo_f)
             # ignore files with only phantom line changes
             if f in self.phantom_lines.keys() and repo_f not in repository_diff.diff.keys():
                 continue
@@ -287,7 +286,6 @@ class CodeReviewAnalysis:
 
         for f in files_with_removed_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
-            print(repo_f)
             # file may not be in version diff in repo
             # possible explanations:
             # 1. file may not be in the common starter point at all

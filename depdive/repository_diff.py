@@ -226,8 +226,6 @@ class RepositoryDiff:
         self.new_version_file_list = None
         self.single_diff = None  # single diff from old to new
 
-        self.commit_diffs = {}
-
         self.build_repository_diff()
 
     def get_commit_of_release(self, version):
@@ -493,8 +491,7 @@ class RepositoryDiff:
         if not len(blame) == len(filelines):
             raise GitError
 
-        blame = [line.split(" ")[0] for line in blame]
-        blame = [line.removeprefix("^") for line in blame]
+        blame = [line.split(" ")[0].removeprefix("^") for line in blame]
         blame_map = defaultdict(list)
         for i, c in enumerate(blame):
             blame_map[c] += [i]
@@ -524,9 +521,13 @@ class RepositoryDiff:
                 continue
 
             next_commits = get_doubledot_inbetween_commits(self.repo_path, commit, new_version_commit)[::-1]
+            next_commits = filter(lambda c: c in self.diff[filepath].commits, next_commits)
+            blame_map[commit] = filter(
+                lambda i: process_whitespace(filelines[i].strip()) in self.diff[filepath].changed_lines,
+                blame_map[commit],
+            )
             for i in blame_map[commit]:
-                line = process_whitespace(filelines[i])
-                next_commit = find_removal_commit(line, next_commits)
+                next_commit = find_removal_commit(filelines[i], next_commits)
                 if next_commit:
                     c2c[next_commit] += [filelines[i]]
                 else:
