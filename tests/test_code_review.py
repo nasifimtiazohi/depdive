@@ -862,7 +862,7 @@ def test_code_review_columnize():
     assert stats.reviewed_commit_count == 1
 
 
-# @pytest.mark.skip(reason="botocore is a tricky repo")
+@pytest.mark.skip(reason="botocore is a tricky repo")
 def test_code_review_tensorflow():
     with open("env/tokens.json", "r") as f:
         tokens = json.load(f)

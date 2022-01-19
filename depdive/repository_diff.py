@@ -297,6 +297,7 @@ class RepositoryDiff:
         single_diff = SingleCommitFileChangeData(filepath)
         lines = get_file_lines(self.repo_path, end_commit, filepath)
         for l in lines:
+            l = process_whitespace(l)
             single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
             single_diff.changed_lines[l].additions += 1
 
