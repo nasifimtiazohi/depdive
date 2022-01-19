@@ -4,6 +4,8 @@ import pytest
 from depdive.code_review_checker import GitHubAPIUnknownObject
 from depdive.registry_diff import VersionDifferError
 from depdive.repository_diff import GitError, ReleaseCommitNotFound
+import os
+import json
 
 
 def test_code_review_guppy():
@@ -861,6 +863,9 @@ def test_code_review_columnize():
 
 
 # @pytest.mark.skip(reason="botocore is a tricky repo")
-def test_temp():
-    ca = CodeReviewAnalysis(NPM, "whatwg-fetch", "3.5.0", "3.6.0")
+def test_code_review_tensorflow():
+    with open("env/tokens.json", "r") as f:
+        tokens = json.load(f)
+    os.environ["GITHUB_TOKEN"] = json.dumps(tokens)
+    ca = CodeReviewAnalysis(PYPI, "tensorflow", "2.6.2", "2.7.0")
     ca.stats.print()
