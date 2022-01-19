@@ -481,6 +481,7 @@ class RepositoryDiff:
 
     def git_blame_delete(self, filepath, start_commit, new_version_commit):
         filelines = get_file_lines(self.repo_path, start_commit, filepath)
+        filelines = [process_whitespace(l.strip()) for l in filelines]
 
         cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
             path=self.repo_path, start_commit=start_commit, end_commit=new_version_commit, fname=filepath
@@ -491,7 +492,8 @@ class RepositoryDiff:
         if not len(blame) == len(filelines):
             raise GitError
 
-        blame = [line.split(" ")[0].removeprefix("^") for line in blame]
+        blame = [line.split(" ")[0] for line in blame]
+        blame = [line.removeprefix("^") for line in blame]
         blame_map = defaultdict(list)
         for i, c in enumerate(blame):
             blame_map[c] += [i]
@@ -505,12 +507,11 @@ class RepositoryDiff:
             assumption: commits are sorted old to new
             TODO: do explicit sorting within the function, maybe not because inner function
             """
-            p_l = process_whitespace(line.strip())
-            if p_l in self.diff[filepath].changed_lines:
+            if line in self.diff[filepath].changed_lines:
                 for commit in candidate_commits:
                     if (
-                        commit in self.diff[filepath].changed_lines[p_l]
-                        and self.diff[filepath].changed_lines[p_l][commit].deletions > 0
+                        commit in self.diff[filepath].changed_lines[line]
+                        and self.diff[filepath].changed_lines[line][commit].deletions > 0
                     ):
                         return commit
 
@@ -521,10 +522,9 @@ class RepositoryDiff:
                 continue
 
             next_commits = get_doubledot_inbetween_commits(self.repo_path, commit, new_version_commit)[::-1]
-            next_commits = filter(lambda c: c in self.diff[filepath].commits, next_commits)
-            blame_map[commit] = filter(
-                lambda i: process_whitespace(filelines[i].strip()) in self.diff[filepath].changed_lines,
-                blame_map[commit],
+            next_commits = list(filter(lambda c: c in self.diff[filepath].commits, next_commits))
+            blame_map[commit] = list(
+                filter(lambda i: filelines[i] in self.diff[filepath].changed_lines, blame_map[commit])
             )
             for i in blame_map[commit]:
                 next_commit = find_removal_commit(filelines[i], next_commits)
