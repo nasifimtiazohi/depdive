@@ -173,7 +173,7 @@ def get_file_lines(repo_path, commit, filepath):
         with open(join(repo_path, filepath), "r") as f:
             lines = f.readlines()
     except:
-        raise FileReadError
+        raise FileReadError(filepath)
 
     repo.git.checkout(head, force=True)
     return lines
