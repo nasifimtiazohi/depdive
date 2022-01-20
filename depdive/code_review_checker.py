@@ -5,6 +5,7 @@ import json
 import github
 from github.NamedUser import NamedUser
 from github.PullRequestReview import PullRequestReview
+from github.GithubException import IncompletableObject
 
 BOT = "[bot]"
 # TODO: handle bots?
@@ -101,6 +102,8 @@ class CommitReviewInfo:
                     self.g = self._get_github_caller()
                     continue
             except github.UnknownObjectException:
+                raise GitHubAPIUnknownObject
+            except IncompletableObject:
                 raise GitHubAPIUnknownObject
 
     def _get_github_caller(self):
