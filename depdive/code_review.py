@@ -232,7 +232,6 @@ class CodeReviewAnalysis:
         self._process_phantom_files(registry_diff, repository_diff.new_version_file_list)
         self._filter_out_phantom_files(registry_diff)
         self._proccess_phantom_lines(registry_diff, repository_diff)
-
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
 
@@ -255,11 +254,12 @@ class CodeReviewAnalysis:
     def map_commit_to_added_lines(self, repository_diff, registry_diff):
         files_with_added_lines = set()
         for f in registry_diff.diff.keys():
-            if registry_diff.diff[f].target_file:
+            if registry_diff.diff[f].target_file and registry_diff.diff[f].added_lines:
                 files_with_added_lines.add(registry_diff.diff[f].target_file)
 
         for f in files_with_added_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
+
             # ignore files with only phantom line changes
             if f in self.phantom_lines.keys() and repo_f not in repository_diff.diff.keys():
                 continue
@@ -281,11 +281,12 @@ class CodeReviewAnalysis:
 
         files_with_removed_lines = set()
         for f in registry_diff.diff.keys():
-            if registry_diff.diff[f].source_file:
+            if registry_diff.diff[f].source_file and registry_diff.diff[f].removed_lines:
                 files_with_removed_lines.add(registry_diff.diff[f].source_file)
 
         for f in files_with_removed_lines:
             repo_f = self.get_repo_path_from_registry_path(f)
+
             # file may not be in version diff in repo
             # possible explanations:
             # 1. file may not be in the common starter point at all

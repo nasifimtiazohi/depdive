@@ -868,4 +868,13 @@ def test_code_review_tensorflow():
         tokens = json.load(f)
     os.environ["GITHUB_TOKEN"] = json.dumps(tokens)
     ca = CodeReviewAnalysis(PYPI, "tensorflow", "2.6.2", "2.7.0")
-    ca.stats.print()
+    stats = ca.stats
+    assert stats.phantom_files == 6848
+    assert stats.files_with_phantom_lines == 2
+    assert stats.phantom_lines == 320
+    assert stats.reviewed_lines == 15114 + 3226
+    assert stats.non_reviewed_lines == 19468 + 1045
+
+
+def test_temp():
+    ca = CodeReviewAnalysis(RUBYGEMS, "monetize", "1.9.2", "1.9,3")

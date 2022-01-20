@@ -16,12 +16,19 @@ class UncertainSubdir(Exception):
 
 
 class ReleaseCommitNotFound(Exception):
-    def message():
-        return "Release commit not found"
+    pass
 
 
 class GitError(Exception):
     pass
+
+
+class FileReadError(Exception):
+    def __init__(self, filepath):
+        self.file = filepath
+
+    def message(self):
+        return "read error for {}".format(self.file)
 
 
 class SingleCommitFileChangeData:
@@ -162,8 +169,11 @@ def get_file_lines(repo_path, commit, filepath):
     head = repo.head.object.hexsha
 
     repo.git.checkout(commit, force=True)
-    with open(join(repo_path, filepath), "r") as f:
-        lines = f.readlines()
+    try:
+        with open(join(repo_path, filepath), "r") as f:
+            lines = f.readlines()
+    except:
+        raise FileReadError
 
     repo.git.checkout(head, force=True)
     return lines
@@ -517,7 +527,8 @@ class RepositoryDiff:
 
         c2c = defaultdict(list)
         for commit in blame_map.keys():
-            assert commit.isalnum()
+            if not commit.isalnum():
+                raise GitError
             if is_same_commit(commit, new_version_commit):
                 continue
 
