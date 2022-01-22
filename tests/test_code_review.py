@@ -874,3 +874,8 @@ def test_code_review_tensorflow():
     assert stats.phantom_lines == 320
     assert stats.reviewed_lines == 15114 + 3226
     assert stats.non_reviewed_lines == 19468 + 1045
+
+
+def test_code_review_setuptools():
+    ca = CodeReviewAnalysis(RUBYGEMS, "monetize", "1.9.2", "1.9.3")
+    ca.stats.print()

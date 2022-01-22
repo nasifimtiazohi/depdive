@@ -57,22 +57,24 @@ def get_doubledot_inbetween_commits(repo_path, commit_a, commit_b=""):
     return [str(c) for c in commits]
 
 
-def get_all_commits_on_file(repo_path, filepath, start_commit=None, end_commit=None):
+def get_all_commits_on_file_with_merges(repo_path, filepath, start_commit=None, end_commit=None):
     # upto given commit
     repo = Repo(repo_path)
 
     if start_commit and end_commit:
         commits = repo.git.log(
-            "{}^..{}".format(start_commit, end_commit), "--pretty=%H", "--follow", "--", filepath
+            "{}^..{}".format(start_commit, end_commit), "--pretty=%H", "--follow", "-m", "--", filepath
         ).split("\n")
     elif start_commit:
-        commits = repo.git.log("{}^..".format(start_commit), "--pretty=%H", "--follow", "--", filepath).split("\n")
+        commits = repo.git.log("{}^..".format(start_commit), "--pretty=%H", "--follow", "-m", "--", filepath).split(
+            "\n"
+        )
     elif end_commit:
-        commits = repo.git.log(end_commit, "--pretty=%H", "--follow", "--", filepath).split("\n")
+        commits = repo.git.log(end_commit, "--pretty=%H", "--follow", "-m", "--", filepath).split("\n")
     else:
-        commits = repo.git.log("--pretty=%H", "--follow", "--", filepath).split("\n")
+        commits = repo.git.log("--pretty=%H", "--follow", "-m", "--", filepath).split("\n")
 
-    return [c for c in commits if c]
+    return list(dict.fromkeys([c for c in commits if c]))
 
 
 def get_commit_diff(repo_path, commit, reverse=False):
@@ -297,19 +299,24 @@ class RepositoryDiff:
 
     def get_full_file_history(self, filepath, end_commit="HEAD"):
         """ get commit history of filepath upto given commit point """
-        commits = get_all_commits_on_file(self.repo_path, filepath, end_commit=end_commit)
-        self.commits |= set(commits)
+        commits = get_all_commits_on_file_with_merges(self.repo_path, filepath, end_commit=end_commit)
+        diff = self.get_commit_diff_stats_from_repo(self.repo_path, commits)
+        if filepath in diff:
+            self.diff[filepath] = self.diff.get(filepath, MultipleCommitFileChangeData(filepath))
+            for line in diff[filepath].changed_lines.keys():
+                self.diff[filepath].changed_lines[line] = self.diff[filepath].changed_lines.get(line, {})
+                for commit in diff[filepath].changed_lines[line].keys():
+                    if commit not in self.diff[filepath].changed_lines[line]:
+                        self.diff[filepath].commits.add(commit)
+                        self.diff[filepath].changed_lines[line][commit] = diff[filepath].changed_lines[line]
 
-        diff_commit_mapping = self.get_commit_diff_stats_from_repo(self.repo_path, commits)
-
+        self.commits |= self.diff[filepath].commits
         single_diff = SingleCommitFileChangeData(filepath)
         lines = get_file_lines(self.repo_path, end_commit, filepath)
         for l in lines:
             l = process_whitespace(l)
             single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
             single_diff.changed_lines[l].additions += 1
-
-        self.diff[filepath] = diff_commit_mapping[filepath]
         self.single_diff[filepath] = single_diff
 
     def traverse_beyond_new_version_commit(self, filepath, phantom_lines):
@@ -377,7 +384,10 @@ class RepositoryDiff:
             new_inbetween_commits = set(
                 get_doubledot_inbetween_commits(self.repo_path, old_version_commit, new_version_commit)
             )
-            if not self.commits - new_inbetween_commits:
+            old_inbetween_commits = set(
+                get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)
+            )
+            if not old_inbetween_commits - new_inbetween_commits:
                 self.new_version_commit = new_version_commit
                 self.build_repository_diff()
                 return True
@@ -393,7 +403,6 @@ class RepositoryDiff:
                 if diff[file].is_rename:
                     files[file].is_rename = True
                     files[file].old_name = diff[file].source_file
-
                 for line in diff[file].changed_lines.keys():
                     files[file].changed_lines[line] = files[file].changed_lines.get(line, {})
                     assert commit not in files[file].changed_lines[line]

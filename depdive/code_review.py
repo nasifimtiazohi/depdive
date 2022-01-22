@@ -186,16 +186,15 @@ class CodeReviewAnalysis:
                 # try looking beyond the initial commit boundary
                 has_commit_boundary_changed = repository_diff.traverse_beyond_new_version_commit(
                     repo_f,
-                    phantom_lines,
+                    phantom_lines.copy(),
                 )
 
                 if has_commit_boundary_changed:
-                    phantom_lines = self._get_phantom_lines_in_a_file(
-                        registry_file_diff, repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
-                    )
+                    return False
 
             if phantom_lines:
                 self.phantom_lines[f] = phantom_lines
+        return True
 
     def _filter_out_phantom_files(self, registry_diff):
         for pf in self.phantom_files:
@@ -231,7 +230,11 @@ class CodeReviewAnalysis:
 
         self._process_phantom_files(registry_diff, repository_diff.new_version_file_list)
         self._filter_out_phantom_files(registry_diff)
-        self._proccess_phantom_lines(registry_diff, repository_diff)
+
+        phantom_lines_processed = False
+        while not phantom_lines_processed:
+            phantom_lines_processed = self._proccess_phantom_lines(registry_diff, repository_diff)
+
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
 
@@ -265,6 +268,7 @@ class CodeReviewAnalysis:
                 continue
 
             c2c = repository_diff.git_blame(repo_f, repository_diff.new_version_commit)
+
             for commit in list(c2c.keys()):
                 if commit not in repository_diff.diff[repo_f].commits:
                     c2c.pop(commit)
