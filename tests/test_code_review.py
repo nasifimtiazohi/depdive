@@ -876,6 +876,19 @@ def test_code_review_tensorflow():
     assert stats.non_reviewed_lines == 19468 + 1045
 
 
-def test_code_review_setuptools():
+def test_code_review_monetize():
     ca = CodeReviewAnalysis(RUBYGEMS, "monetize", "1.9.2", "1.9.3")
     ca.stats.print()
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_temp():
+    ca = CodeReviewAnalysis(RUBYGEMS, "json", "2.3.1", "2.4.0")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 2
+    assert stats.phantom_lines == 34
+    assert stats.reviewed_lines == 982
+    assert stats.non_reviewed_lines == 51
+    assert stats.total_commit_count == 29
+    assert stats.reviewed_commit_count == 23

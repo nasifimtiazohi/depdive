@@ -64,13 +64,10 @@ def test_repository_get_commits():
         start_commit = "c25c32a25f4315c1f7ee21cc7b36b497c4f0212a"
         file = "source/utilities.js"
 
-        assert len(get_all_commits_on_file_with_merges(repo_path, file)) == 7
-        assert len(get_all_commits_on_file_with_merges(repo_path, file, start_commit=start_commit)) == 5
-        assert len(get_all_commits_on_file_with_merges(repo_path, file, end_commit=end_commit)) == 6
-        assert (
-            len(get_all_commits_on_file_with_merges(repo_path, file, start_commit=start_commit, end_commit=end_commit))
-            == 4
-        )
+        assert len(get_all_commits_on_file(repo_path, file)) == 7
+        assert len(get_all_commits_on_file(repo_path, file, start_commit=start_commit)) == 5
+        assert len(get_all_commits_on_file(repo_path, file, end_commit=end_commit)) == 6
+        assert len(get_all_commits_on_file(repo_path, file, start_commit=start_commit, end_commit=end_commit)) == 4
         # TODO check zero
 
         assert (
