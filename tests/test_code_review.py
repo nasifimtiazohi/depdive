@@ -896,6 +896,11 @@ def test_code_review_clap():
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
     assert stats.reviewed_lines == 0
-    assert stats.non_reviewed_lines == 749
-    assert stats.total_commit_count == 2
+    assert stats.non_reviewed_lines == 755
+    assert stats.total_commit_count == 3
     assert stats.reviewed_commit_count == 0
+
+
+def test_temp():
+    ca = CodeReviewAnalysis(PYPI, "tzdata", "2020.2", "2020.3")
+    ca.stats.print()

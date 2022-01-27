@@ -25,7 +25,6 @@ def get_registry_version_diff(ecosystem, package, old, new):
 
 
 def preprocess_cargo_crate_files(version_diff):
-
     # handle Cargo's handling of Cargo.toml file
     version_diff.diff.pop("Cargo.toml", None)
     if "Cargo.toml.orig" in version_diff.diff:
