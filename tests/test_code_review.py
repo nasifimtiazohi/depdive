@@ -467,11 +467,6 @@ def test_code_review_babel():
     assert stats.reviewed_commit_count == 1
 
 
-def test_code_review_num_bigint():
-    with pytest.raises(VersionDifferError):
-        ca = CodeReviewAnalysis(CARGO, "num-bigint", "0.4.2", "0.4.3")
-
-
 @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_requests():
     ca = CodeReviewAnalysis(PYPI, "requests", "2.27.0", "2.27.1")
@@ -893,7 +888,14 @@ def test_code_review_json():
     assert stats.total_commit_count == 29
     assert stats.reviewed_commit_count == 23
 
-def test_temp():
-    ca = CodeReviewAnalysis(PYPI, "numpy", "1.20.3", "1.21.0")
-    ca.stats.print()
-    
+
+def test_code_review_clap():
+    ca = CodeReviewAnalysis(CARGO, "clap", "2.33.4", "2.34.0")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 0
+    assert stats.non_reviewed_lines == 749
+    assert stats.total_commit_count == 2
+    assert stats.reviewed_commit_count == 0

@@ -66,9 +66,7 @@ def get_all_commits_on_file(repo_path, filepath, start_commit=None, end_commit=N
             "{}^..{}".format(start_commit, end_commit), "--pretty=%H", "--follow", "--", filepath
         ).split("\n")
     elif start_commit:
-        commits = repo.git.log("{}^..".format(start_commit), "--pretty=%H", "--follow", "--", filepath).split(
-            "\n"
-        )
+        commits = repo.git.log("{}^..".format(start_commit), "--pretty=%H", "--follow", "--", filepath).split("\n")
     elif end_commit:
         commits = repo.git.log(end_commit, "--pretty=%H", "--follow", "--", filepath).split("\n")
     else:
@@ -310,7 +308,7 @@ class RepositoryDiff:
                         self.diff[filepath].commits.add(commit)
                         self.diff[filepath].changed_lines[line][commit] = diff[filepath].changed_lines[line]
             self.commits |= self.diff[filepath].commits
-    
+
         single_diff = SingleCommitFileChangeData(filepath)
         lines = get_file_lines(self.repo_path, end_commit, filepath)
         for l in lines:
