@@ -57,7 +57,7 @@ def get_doubledot_inbetween_commits(repo_path, commit_a, commit_b=""):
     return [str(c) for c in commits]
 
 
-def get_all_commits_on_file_with_merges(repo_path, filepath, start_commit=None, end_commit=None):
+def get_all_commits_on_file(repo_path, filepath, start_commit=None, end_commit=None):
     # upto given commit
     repo = Repo(repo_path)
 
@@ -66,7 +66,9 @@ def get_all_commits_on_file_with_merges(repo_path, filepath, start_commit=None, 
             "{}^..{}".format(start_commit, end_commit), "--pretty=%H", "--follow", "--", filepath
         ).split("\n")
     elif start_commit:
-        commits = repo.git.log("{}^..".format(start_commit), "--pretty=%H", "--follow", "--", filepath).split("\n")
+        commits = repo.git.log("{}^..".format(start_commit), "--pretty=%H", "--follow", "--", filepath).split(
+            "\n"
+        )
     elif end_commit:
         commits = repo.git.log(end_commit, "--pretty=%H", "--follow", "--", filepath).split("\n")
     else:
@@ -296,8 +298,8 @@ class RepositoryDiff:
         )
 
     def get_full_file_history(self, filepath, end_commit="HEAD"):
-        """get commit history of filepath upto given commit point"""
-        commits = get_all_commits_on_file_with_merges(self.repo_path, filepath, end_commit=end_commit)
+        """ get commit history of filepath upto given commit point """
+        commits = get_all_commits_on_file(self.repo_path, filepath, end_commit=end_commit)
         diff = self.get_commit_diff_stats_from_repo(self.repo_path, commits)
         if filepath in diff:
             self.diff[filepath] = self.diff.get(filepath, MultipleCommitFileChangeData(filepath))
@@ -308,7 +310,7 @@ class RepositoryDiff:
                         self.diff[filepath].commits.add(commit)
                         self.diff[filepath].changed_lines[line][commit] = diff[filepath].changed_lines[line]
             self.commits |= self.diff[filepath].commits
-
+    
         single_diff = SingleCommitFileChangeData(filepath)
         lines = get_file_lines(self.repo_path, end_commit, filepath)
         for l in lines:

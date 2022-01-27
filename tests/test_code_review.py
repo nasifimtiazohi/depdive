@@ -882,7 +882,7 @@ def test_code_review_monetize():
 
 
 @pytest.mark.skip(reason="to limit API calls")
-def test_temp():
+def test_code_review_json():
     ca = CodeReviewAnalysis(RUBYGEMS, "json", "2.3.1", "2.4.0")
     stats = ca.stats
     assert stats.phantom_files == 0
@@ -892,3 +892,8 @@ def test_temp():
     assert stats.non_reviewed_lines == 51
     assert stats.total_commit_count == 29
     assert stats.reviewed_commit_count == 23
+
+def test_temp():
+    ca = CodeReviewAnalysis(PYPI, "numpy", "1.20.3", "1.21.0")
+    ca.stats.print()
+    
