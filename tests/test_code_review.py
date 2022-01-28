@@ -901,6 +901,14 @@ def test_code_review_clap():
     assert stats.reviewed_commit_count == 0
 
 
-def test_temp():
-    ca = CodeReviewAnalysis(PYPI, "tzdata", "2020.2", "2020.3")
-    ca.stats.print()
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_dill():
+    ca = CodeReviewAnalysis(PYPI, "dill", "0.3.0", "0.3.1.1")
+    stats = ca.stats
+    assert stats.phantom_files == 3
+    assert stats.files_with_phantom_lines == 1
+    assert stats.phantom_lines == 1
+    assert stats.reviewed_lines == 20
+    assert stats.non_reviewed_lines == 285
+    assert stats.total_commit_count == 19
+    assert stats.reviewed_commit_count == 3
