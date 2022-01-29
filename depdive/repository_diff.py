@@ -298,6 +298,9 @@ class RepositoryDiff:
     def get_full_file_history(self, filepath, end_commit="HEAD"):
         """ get commit history of filepath upto given commit point """
         commits = get_all_commits_on_file(self.repo_path, filepath, end_commit=end_commit)
+        if not set(commits) - self.diff[filepath].commits:
+            return
+
         diff = self.get_commit_diff_stats_from_repo(self.repo_path, commits)
         if filepath in diff:
             self.diff[filepath] = self.diff.get(filepath, MultipleCommitFileChangeData(filepath))
