@@ -301,6 +301,29 @@ class RepositoryDiff:
         if not set(commits) - self.diff[filepath].commits:
             return
 
+        single_diff = SingleCommitFileChangeData(filepath)
+        lines = get_file_lines(self.repo_path, end_commit, filepath)
+        for l in lines:
+            l = process_whitespace(l)
+            single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
+            single_diff.changed_lines[l].additions += 1
+
+        if len(single_diff.changed_lines) == len(self.single_diff[filepath].changed_lines) and sum(
+            [
+                (single_diff.changed_lines[l].additions + single_diff.changed_lines[l].deletions)
+                for l in single_diff.changed_lines
+            ]
+        ) == sum(
+            [
+                (
+                    self.single_diff[filepath].changed_lines[l].additions
+                    + self.single_diff[filepath].changed_lines[l].deletions
+                )
+                for l in self.single_diff[filepath].changed_lines
+            ]
+        ):
+            return
+
         diff = self.get_commit_diff_stats_from_repo(self.repo_path, commits)
         if filepath in diff:
             self.diff[filepath] = self.diff.get(filepath, MultipleCommitFileChangeData(filepath))
@@ -312,12 +335,6 @@ class RepositoryDiff:
                         self.diff[filepath].changed_lines[line][commit] = diff[filepath].changed_lines[line]
             self.commits |= self.diff[filepath].commits
 
-        single_diff = SingleCommitFileChangeData(filepath)
-        lines = get_file_lines(self.repo_path, end_commit, filepath)
-        for l in lines:
-            l = process_whitespace(l)
-            single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
-            single_diff.changed_lines[l].additions += 1
         self.single_diff[filepath] = single_diff
 
     def traverse_beyond_new_version_commit(self, filepath, phantom_lines):
