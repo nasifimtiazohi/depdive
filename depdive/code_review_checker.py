@@ -137,7 +137,13 @@ class CommitReviewInfo:
             if pr.get_reviews().totalCount > 0:
                 self.review_category = CodeReviewCategory.GitHubReview
                 self.review_metadata = GitHubReviewMetadata(pr.user, pr.get_reviews())
-            elif pr.user and pr.merged_by and pr.user.login != pr.merged_by.login and pr.merged_by.login != GITHUB:
+            elif (
+                pr.user
+                and pr.merged_by
+                and pr.user.login != pr.merged_by.login
+                and pr.merged_by.login != GITHUB
+                and not (pr.user.login.endswith(BOT) and pr.merged_by.login.endswith(BOT))
+            ):
                 self.review_category = CodeReviewCategory.DifferentMerger
                 self.review_metadata = DifferentMergerMetadata(pr.user, pr.merged_by)
             elif any([l.name in ["lgtm", "approved"] for l in pr.get_labels()]):
@@ -150,6 +156,7 @@ class CommitReviewInfo:
             and self.github_commit.committer
             and self.github_commit.author.login != self.github_commit.committer.login
             and self.github_commit.committer.login != GITHUB
+            and not (self.github_commit.author.login.endswith(BOT) and self.github_commit.committer.login.endswith(BOT))
         ):
             self.review_category = CodeReviewCategory.DifferentCommitter
             self.review_metadata = DifferentCommitterMetadata(self.github_commit.author, self.github_commit.committer)
