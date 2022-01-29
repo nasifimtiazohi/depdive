@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "depdive"
-version = "0.0.29"  # <<COOKIETEMPLE_FORCE_BUMP>>
+version = "0.0.30"  # <<COOKIETEMPLE_FORCE_BUMP>>
 description = "Performs security checks for a dependency update"
 authors = ["Nasif Imtiaz <nasifimtiaz88@gmail.com>"]
 license = "MIT"
