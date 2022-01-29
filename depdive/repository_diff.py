@@ -298,7 +298,7 @@ class RepositoryDiff:
     def get_full_file_history(self, filepath, end_commit="HEAD"):
         """ get commit history of filepath upto given commit point """
         commits = get_all_commits_on_file(self.repo_path, filepath, end_commit=end_commit)
-        if not set(commits) - self.diff[filepath].commits:
+        if filepath in self.diff and not set(commits) - self.diff[filepath].commits:
             return
 
         single_diff = SingleCommitFileChangeData(filepath)
@@ -308,19 +308,24 @@ class RepositoryDiff:
             single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
             single_diff.changed_lines[l].additions += 1
 
-        if len(single_diff.changed_lines) == len(self.single_diff[filepath].changed_lines) and sum(
-            [
-                (single_diff.changed_lines[l].additions + single_diff.changed_lines[l].deletions)
-                for l in single_diff.changed_lines
-            ]
-        ) == sum(
-            [
-                (
-                    self.single_diff[filepath].changed_lines[l].additions
-                    + self.single_diff[filepath].changed_lines[l].deletions
-                )
-                for l in self.single_diff[filepath].changed_lines
-            ]
+        if (
+            filepath in self.diff
+            and len(single_diff.changed_lines) == len(self.single_diff[filepath].changed_lines)
+            and sum(
+                [
+                    (single_diff.changed_lines[l].additions + single_diff.changed_lines[l].deletions)
+                    for l in single_diff.changed_lines
+                ]
+            )
+            == sum(
+                [
+                    (
+                        self.single_diff[filepath].changed_lines[l].additions
+                        + self.single_diff[filepath].changed_lines[l].deletions
+                    )
+                    for l in self.single_diff[filepath].changed_lines
+                ]
+            )
         ):
             return
 
