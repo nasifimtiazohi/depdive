@@ -912,3 +912,9 @@ def test_code_review_dill():
     assert stats.non_reviewed_lines == 285
     assert stats.total_commit_count == 19
     assert stats.reviewed_commit_count == 3
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_temp():
+    ca = CodeReviewAnalysis(PYPI, "azure-mgmt-resource", "13.0.0", "15.0.0")
+    ca.stats.print()

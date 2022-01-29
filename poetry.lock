@@ -1121,7 +1121,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "unidiff"
-version = "0.7.1"
+version = "0.7.2"
 description = "Unified diff parsing/metadata extraction library."
 category = "main"
 optional = false
@@ -1142,7 +1142,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "version-differ"
-version = "0.3.10"
+version = "0.3.11"
 description = "Accurate diffing between two versions of a project"
 category = "main"
 optional = false
@@ -1219,7 +1219,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "3cfbe25addc23b5c4106a6f0af4e3cb7469c6ddd9c33580b9bc88de44998c6c2"
+content-hash = "4d24a66e179a968b390e244cd8d08bf5dc3763c480e002fd81bc397917f68d61"
 
 [metadata.files]
 alabaster = [
@@ -2015,16 +2015,16 @@ typing-extensions = [
     {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
 ]
 unidiff = [
-    {file = "unidiff-0.7.1-py2.py3-none-any.whl", hash = "sha256:40cd367443dc445ae4eb89fda8b2056448f357617160d17b293699b0b562ea92"},
-    {file = "unidiff-0.7.1.tar.gz", hash = "sha256:00fa7b9f36460da0bd0332750eda494cb5146d71bdc8c1dc759c460b52a94fd5"},
+    {file = "unidiff-0.7.2-py2.py3-none-any.whl", hash = "sha256:1ecddf0fa1e1b121a2a410a25b9ec26863f917f27373160cc71c7423877f19bd"},
+    {file = "unidiff-0.7.2.tar.gz", hash = "sha256:15297652e97870f55136bd3c07c697eaed813b24ca8cec7ae08398b026ff03cc"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.8-py2.py3-none-any.whl", hash = "sha256:000ca7f471a233c2251c6c7023ee85305721bfdf18621ebff4fd17a8653427ed"},
     {file = "urllib3-1.26.8.tar.gz", hash = "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"},
 ]
 version-differ = [
-    {file = "version-differ-0.3.10.tar.gz", hash = "sha256:3259b37bc976a1fab31587c5bd0a4e19d3c7d2aab7ca06e96484d3bf79e7d95e"},
-    {file = "version_differ-0.3.10-py3-none-any.whl", hash = "sha256:37c51136492039ed2f897c02044718dd809724b6b7716b3a0ee348f36d4b547b"},
+    {file = "version-differ-0.3.11.tar.gz", hash = "sha256:9131dcafdc659ba4b6c98a65a917545a2aa45d973ae34727654898b527e0e453"},
+    {file = "version_differ-0.3.11-py3-none-any.whl", hash = "sha256:5a2f372b72561ee3a4ffbd9eff3d062c7405d1fc51b613ea7e08d127b6467c30"},
 ]
 virtualenv = [
     {file = "virtualenv-20.13.0-py2.py3-none-any.whl", hash = "sha256:339f16c4a86b44240ba7223d0f93a7887c3ca04b5f9c8129da7958447d079b09"},

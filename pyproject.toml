@@ -25,7 +25,7 @@ click = "^8.0.0"
 rich = "^10.3.0"
 PyYAML = "^5.4.1"
 package-locator = "^0.4.2"
-version-differ = "^0.3.10"
+version-differ = "^0.3.11"
 PyGithub = "^1.55"
 
 [tool.poetry.dev-dependencies]
