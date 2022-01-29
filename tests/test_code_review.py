@@ -454,20 +454,6 @@ def test_code_review_uuid():
 
 
 @pytest.mark.skip(reason="to limit API calls")
-def test_code_review_babel():
-    ca = CodeReviewAnalysis(NPM, "@babel/highlight", "7.14.5", "7.16.0")
-    assert len(ca.phantom_files) == 2
-    assert len(ca.phantom_lines) == 1
-
-    stats = ca.stats
-    assert stats.phantom_lines == 1
-    assert stats.reviewed_lines == 2
-    assert stats.non_reviewed_lines == 2
-    assert stats.total_commit_count == 2
-    assert stats.reviewed_commit_count == 1
-
-
-@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_requests():
     ca = CodeReviewAnalysis(PYPI, "requests", "2.27.0", "2.27.1")
     assert not ca.phantom_files

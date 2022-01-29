@@ -106,10 +106,6 @@ class CodeReviewAnalysis:
         self.repository, self.directory = get_repository_url_and_subdir(self.ecosystem, self.package)
 
     def get_repo_path_from_registry_path(self, filepath):
-        # put custom logic here for specific packages
-        if self.ecosystem == NPM and self.package.startswith("@babel") and filepath.startswith("lib/"):
-            filepath = "src/" + filepath.removeprefix("lib/")
-
         subdir = self.directory.removeprefix("./").removesuffix("/")
         return subdir + "/" + filepath if subdir else filepath
 
