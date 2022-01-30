@@ -766,6 +766,7 @@ def test_code_review_mlflow():
     assert stats.reviewed_commit_count == 41
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_botocore():
     ca = CodeReviewAnalysis(PYPI, "botocore", "1.23.30", "1.23.31")
     stats = ca.stats
@@ -875,6 +876,7 @@ def test_code_review_json():
     assert stats.reviewed_commit_count == 23
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_clap():
     ca = CodeReviewAnalysis(CARGO, "clap", "2.33.4", "2.34.0")
     stats = ca.stats
