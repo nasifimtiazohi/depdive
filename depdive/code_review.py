@@ -236,6 +236,13 @@ class CodeReviewAnalysis:
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
 
+        print(repository_diff.single_diff.keys())
+        print(repository_diff.diff.keys())
+        print(self.phantom_lines.keys())
+        print(registry_diff.diff.keys())
+        print(registry_diff.diff['utils.js'].added_lines)
+        print(self.phantom_lines['utils.js'].keys())
+
         self.map_commit_to_added_lines(repository_diff, registry_diff)
         self.map_commit_to_removed_lines(repository_diff, registry_diff)
 

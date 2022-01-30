@@ -939,7 +939,11 @@ def test_code_review_libssh2():
     assert stats.total_commit_count == 2
     assert stats.reviewed_commit_count == 2
 
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_aiohttp():
+    ca = CodeReviewAnalysis(PYPI, "aiohttp", "3.7.4", "3.8.0")
+    ca.stats.print()
 
 def test_temp():
-    ca = CodeReviewAnalysis(PYPI, "aiohttp", "3.7.4", "3.8.0")
+    ca = CodeReviewAnalysis(NPM, "snapdragon-util", "1.0.5", "1.0.6")
     ca.stats.print()
