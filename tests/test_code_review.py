@@ -910,3 +910,16 @@ def test_code_review_domutils():
     assert stats.non_reviewed_lines == 19
     assert stats.total_commit_count == 21
     assert stats.reviewed_commit_count == 9
+
+
+def test_code_review_openssl_src():
+    ca = CodeReviewAnalysis(CARGO, "openssl-src", "300.0.2+3.0.0", "300.0.3+3.0.0")
+    assert "openssl/doc/man3/EVP_SIGNATURE_free.pod" in ca.phantom_files
+    stats = ca.stats
+    assert stats.phantom_files == 1
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 10
+    assert stats.non_reviewed_lines == 2
+    assert stats.total_commit_count == 2
+    assert stats.reviewed_commit_count == 1

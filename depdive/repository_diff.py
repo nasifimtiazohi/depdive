@@ -252,7 +252,8 @@ class RepositoryDiff:
         if not self.repo_path:
             self._temp_dir = tempfile.TemporaryDirectory()
             self.repo_path = self._temp_dir.name
-            Repo.clone_from(self.repository, self.repo_path)
+            repo = Repo.clone_from(self.repository, self.repo_path)
+            repo.submodule_update(recursive=True)
 
         if (
             not self.old_version_commit
@@ -296,7 +297,7 @@ class RepositoryDiff:
         )
 
     def get_full_file_history(self, filepath, end_commit="HEAD"):
-        """ get commit history of filepath upto given commit point """
+        """get commit history of filepath upto given commit point"""
         commits = get_all_commits_on_file(self.repo_path, filepath, end_commit=end_commit)
         if filepath in self.diff and not set(commits) - self.diff[filepath].commits:
             return
