@@ -25,16 +25,6 @@ def get_registry_version_diff(ecosystem, package, old, new):
 
 
 def preprocess_cargo_crate_files(version_diff):
-    # handle Cargo's handling of Cargo.toml file
-    version_diff.diff.pop("Cargo.toml", None)
-    if "Cargo.toml.orig" in version_diff.diff:
-        version_diff.diff["Cargo.toml"] = version_diff.diff["Cargo.toml.orig"]
-        version_diff.diff["Cargo.toml"].source_file = version_diff.diff["Cargo.toml"].target_file = "Cargo.toml"
-        version_diff.diff.pop("Cargo.toml.orig", None)
-
-    if "Cargo.toml.orig" in version_diff.new_version_filelist:
-        version_diff.new_version_filelist.discard("Cargo.toml.orig")
-
     # filter out auto-generated files
     auto_gen_files = [".cargo_vcs_info.json", "Cargo.lock"]
     for f in auto_gen_files:
