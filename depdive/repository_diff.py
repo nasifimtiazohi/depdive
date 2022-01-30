@@ -83,15 +83,25 @@ def get_commit_diff(repo_path, commit, reverse=False):
     try:
         if not reverse:
             uni_diff_text = repo.git.diff(
-                "{}~".format(commit), "{}".format(commit), ignore_blank_lines=True, ignore_space_at_eol=True
+                "{}~".format(commit),
+                "{}".format(commit),
+                "--submodule=diff",
+                ignore_blank_lines=True,
+                ignore_space_at_eol=True,
             )
         else:
             uni_diff_text = repo.git.diff(
-                "{}".format(commit), "{}~".format(commit), ignore_blank_lines=True, ignore_space_at_eol=True
+                "{}".format(commit),
+                "{}~".format(commit),
+                "--submodule=diff",
+                ignore_blank_lines=True,
+                ignore_space_at_eol=True,
             )
     except:
         # Case 1: first commit, no parent
-        uni_diff_text = repo.git.show("{}".format(commit), ignore_blank_lines=True, ignore_space_at_eol=True)
+        uni_diff_text = repo.git.show(
+            "{}".format(commit), "--submodule=diff", ignore_blank_lines=True, ignore_space_at_eol=True
+        )
 
     return uni_diff_text
 
@@ -106,6 +116,7 @@ def get_commit_diff_for_file(repo_path, filepath, commit, reverse=False):
             uni_diff_text = repo.git.diff(
                 "{}~".format(commit),
                 "{}".format(commit),
+                "--submodule=diff",
                 "--",
                 filepath,
                 ignore_blank_lines=True,
@@ -115,6 +126,7 @@ def get_commit_diff_for_file(repo_path, filepath, commit, reverse=False):
             uni_diff_text = repo.git.diff(
                 "{}".format(commit),
                 "{}~".format(commit),
+                "--submodule=diff",
                 "--",
                 filepath,
                 ignore_blank_lines=True,
@@ -123,7 +135,7 @@ def get_commit_diff_for_file(repo_path, filepath, commit, reverse=False):
     except:
         # in case of first commit, no parent
         uni_diff_text = repo.git.show(
-            "{}".format(commit), "--", filepath, ignore_blank_lines=True, ignore_space_at_eol=True
+            "{}".format(commit), "--submodule=diff", "--", filepath, ignore_blank_lines=True, ignore_space_at_eol=True
         )
 
     return uni_diff_text
@@ -132,7 +144,11 @@ def get_commit_diff_for_file(repo_path, filepath, commit, reverse=False):
 def get_inbetween_commit_diff(repo_path, commit_a, commit_b):
     repo = Repo(repo_path)
     uni_diff_text = repo.git.diff(
-        "{}".format(commit_a), "{}".format(commit_b), ignore_blank_lines=True, ignore_space_at_eol=True
+        "{}".format(commit_a),
+        "{}".format(commit_b),
+        "--submodule=diff",
+        ignore_blank_lines=True,
+        ignore_space_at_eol=True,
     )
     return uni_diff_text
 
@@ -142,6 +158,7 @@ def get_inbetween_commit_diff_for_file(repo_path, filepath, commit_a, commit_b):
     uni_diff_text = repo.git.diff(
         "{}".format(commit_a),
         "{}".format(commit_b),
+        "--submodule=diff",
         "--",
         filepath,
         ignore_blank_lines=True,
@@ -222,6 +239,8 @@ class RepositoryDiff:
         self._temp_dir = None
         self.repo_path = None
 
+        self.submodule_paths: dict[str, list(str)] = {}
+
         self.old_version_commit = old_version_commit
         self.new_version_commit = new_version_commit
 
@@ -248,12 +267,29 @@ class RepositoryDiff:
     def cleanup(self):
         self._temp_dir.cleanup()
 
+    def _process_submodules(self):
+        repo = Repo(self.repo_path)
+        repo.submodule_update(recursive=True, init=True)
+
+        head = repo.head.object.hexsha
+        repo.git.checkout(self.new_version_commit, force=True)
+        repo.submodule_update(recursive=True, init=True)
+        repo.git.checkout(self.old_version_commit, force=True)
+        repo.submodule_update(recursive=True, init=True)
+        repo.git.checkout(head, force=True)
+
+        for sm in repo.submodules:
+            path = sm.path
+            commits = get_all_commits_on_file(self.repo_path, path, self.old_version_commit, self.new_version_commit)[
+                ::-1
+            ]
+            self.submodule_paths[path] = commits
+
     def build_repository_diff(self):
         if not self.repo_path:
             self._temp_dir = tempfile.TemporaryDirectory()
             self.repo_path = self._temp_dir.name
-            repo = Repo.clone_from(self.repository, self.repo_path)
-            repo.submodule_update(recursive=True)
+            Repo.clone_from(self.repository, self.repo_path)
 
         if (
             not self.old_version_commit
@@ -281,6 +317,8 @@ class RepositoryDiff:
         self.common_ancestor_commit_new_and_old_version = get_common_ancestor(
             self.repo_path, self.old_version_commit, self.new_version_commit
         )
+
+        self._process_submodules()
 
         self.commits = set(
             get_doubledot_inbetween_commits(self.repo_path, self.old_version_commit, self.new_version_commit)

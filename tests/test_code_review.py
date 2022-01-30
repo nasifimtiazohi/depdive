@@ -912,6 +912,7 @@ def test_code_review_domutils():
     assert stats.reviewed_commit_count == 9
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_openssl_src():
     ca = CodeReviewAnalysis(CARGO, "openssl-src", "300.0.2+3.0.0", "300.0.3+3.0.0")
     assert "openssl/doc/man3/EVP_SIGNATURE_free.pod" in ca.phantom_files
@@ -923,3 +924,15 @@ def test_code_review_openssl_src():
     assert stats.non_reviewed_lines == 2
     assert stats.total_commit_count == 2
     assert stats.reviewed_commit_count == 1
+
+
+def test_code_review_libssh2():
+    ca = CodeReviewAnalysis(CARGO, "libssh2-sys", "0.2.19", "0.2.20")
+    stats = ca.stats
+    assert stats.phantom_files == 3
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 2537
+    assert stats.non_reviewed_lines == 0
+    assert stats.total_commit_count == 2
+    assert stats.reviewed_commit_count == 2

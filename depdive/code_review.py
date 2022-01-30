@@ -1,3 +1,5 @@
+from audioop import add
+import re
 from package_locator.common import NPM
 from version_differ.version_differ import FileDiff
 from package_locator.locator import get_repository_url_and_subdir
@@ -251,6 +253,15 @@ class CodeReviewAnalysis:
         repository_diff.cleanup()
 
     def map_commit_to_added_lines(self, repository_diff, registry_diff):
+        def map_submdule_to_added_lines(f, repo_f):
+            for path in repository_diff.submodule_paths:
+                if "{}/".format(path) in repo_f:
+                    commit = repository_diff.submodule_paths[path][-1]
+                    added_lines = [process_whitespace(l) for l in registry_diff.diff[f].added_lines]
+                    self.added_loc_to_commit_map[f] = {commit: added_lines}
+                    return True
+            return False
+
         files_with_added_lines = set()
         for f in registry_diff.diff.keys():
             if registry_diff.diff[f].target_file and registry_diff.diff[f].added_lines:
@@ -261,6 +272,10 @@ class CodeReviewAnalysis:
 
             # ignore files with only phantom line changes
             if f in self.phantom_lines.keys() and repo_f not in repository_diff.diff.keys():
+                continue
+
+            # check if file is in a submodule
+            if map_submdule_to_added_lines(f, repo_f):
                 continue
 
             c2c = repository_diff.git_blame(repo_f, repository_diff.new_version_commit)
@@ -275,6 +290,15 @@ class CodeReviewAnalysis:
             self.added_loc_to_commit_map[f] = c2c
 
     def map_commit_to_removed_lines(self, repository_diff, registry_diff):
+        def map_submdule_to_removed_lines(f, repo_f):
+            for path in repository_diff.submodule_paths:
+                if "{}/".format(path) in repo_f:
+                    commit = repository_diff.submodule_paths[path][0]
+                    removed_lines = [process_whitespace(l) for l in registry_diff.diff[f].removed_lines]
+                    self.removed_loc_to_commit_map[f] = {commit: removed_lines}
+                    return True
+            return False
+
         starter_point_file_list = get_repository_file_list(
             repository_diff.repo_path, repository_diff.common_ancestor_commit_new_and_old_version
         )
@@ -292,6 +316,9 @@ class CodeReviewAnalysis:
             # 1. file may not be in the common starter point at all
             # 2. phantom line changes
             if repo_f not in starter_point_file_list or repo_f not in repository_diff.diff.keys():
+                continue
+
+            if map_submdule_to_removed_lines(f, repo_f):
                 continue
 
             c2c = repository_diff.git_blame_delete(
