@@ -954,8 +954,8 @@ def test_code_review_clear_on_drop():
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
     assert stats.reviewed_lines == 44
-    assert stats.non_reviewed_lines == 120
-    assert stats.total_commit_count == 5
+    assert stats.non_reviewed_lines == 122
+    assert stats.total_commit_count == 6
     assert stats.reviewed_commit_count == 4
 
 
