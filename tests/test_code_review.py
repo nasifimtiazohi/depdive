@@ -1,3 +1,4 @@
+from inspect import CO_ASYNC_GENERATOR
 from package_locator.common import CARGO, NPM, PYPI, RUBYGEMS
 from depdive.code_review import CodeReviewAnalysis, UncertainSubdir
 import pytest
@@ -959,7 +960,7 @@ def test_code_review_clear_on_drop():
 
 
 @pytest.mark.skip(reason="to limit API calls")
-def test_temp():
+def test_code_review_rugged():
     ca = CodeReviewAnalysis(RUBYGEMS, "rugged", "1.0.0", "1.0.1")
     stats = ca.stats
     assert stats.phantom_files == 0
@@ -969,3 +970,8 @@ def test_temp():
     assert stats.non_reviewed_lines == 0
     assert stats.total_commit_count == 7
     assert stats.reviewed_commit_count == 7
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_code_review_jedi():
+    ca = CodeReviewAnalysis(PYPI, "jedi", "0.15.1", "0.15.2")

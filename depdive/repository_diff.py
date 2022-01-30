@@ -285,10 +285,16 @@ class RepositoryDiff:
         repo.submodule_update(recursive=True, init=True)
 
         head = repo.head.object.hexsha
-        repo.git.checkout(self.old_version_commit, force=True)
-        repo.submodule_update(recursive=True)
-        repo.git.checkout(self.new_version_commit, force=True)
-        repo.submodule_update(recursive=True)
+        try:
+            repo.git.checkout(self.old_version_commit, force=True)
+            repo.submodule_update(recursive=True)
+        except:
+            pass
+        try:
+            repo.git.checkout(self.new_version_commit, force=True)
+            repo.submodule_update(recursive=True)
+        except:
+            pass
         repo.git.checkout(head, force=True)
 
         self.submodule_paths = [x.path for x in repo.submodules]
