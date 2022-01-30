@@ -348,7 +348,7 @@ class RepositoryDiff:
             single_diff.changed_lines[l].additions += 1
 
         if (
-            filepath in self.diff
+            filepath in self.single_diff
             and len(single_diff.changed_lines) == len(self.single_diff[filepath].changed_lines)
             and sum(
                 [

@@ -936,3 +936,8 @@ def test_code_review_libssh2():
     assert stats.non_reviewed_lines == 0
     assert stats.total_commit_count == 2
     assert stats.reviewed_commit_count == 2
+
+
+def test_temp():
+    ca = CodeReviewAnalysis(PYPI, "aiohttp", "3.7.4", "3.8.0")
+    ca.stats.print()
