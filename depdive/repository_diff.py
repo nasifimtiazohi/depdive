@@ -272,10 +272,10 @@ class RepositoryDiff:
         repo.submodule_update(recursive=True, init=True)
 
         head = repo.head.object.hexsha
-        repo.git.checkout(self.new_version_commit, force=True)
-        repo.submodule_update(recursive=True, init=True)
         repo.git.checkout(self.old_version_commit, force=True)
-        repo.submodule_update(recursive=True, init=True)
+        repo.submodule_update(recursive=True)
+        repo.git.checkout(self.new_version_commit, force=True)
+        repo.submodule_update(recursive=True)
         repo.git.checkout(head, force=True)
 
         for sm in repo.submodules:

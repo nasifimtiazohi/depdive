@@ -1142,7 +1142,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "version-differ"
-version = "0.3.11"
+version = "0.3.12"
 description = "Accurate diffing between two versions of a project"
 category = "main"
 optional = false
@@ -2023,8 +2023,8 @@ urllib3 = [
     {file = "urllib3-1.26.8.tar.gz", hash = "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"},
 ]
 version-differ = [
-    {file = "version-differ-0.3.11.tar.gz", hash = "sha256:9131dcafdc659ba4b6c98a65a917545a2aa45d973ae34727654898b527e0e453"},
-    {file = "version_differ-0.3.11-py3-none-any.whl", hash = "sha256:5a2f372b72561ee3a4ffbd9eff3d062c7405d1fc51b613ea7e08d127b6467c30"},
+    {file = "version-differ-0.3.12.tar.gz", hash = "sha256:966a707927d6b571e85ba5348e3473c13e67aa6ae7114269159a7dc90e10b561"},
+    {file = "version_differ-0.3.12-py3-none-any.whl", hash = "sha256:250e0621f1c9329bf704422b4574f0be1797e1d68f0892191b8ef5e92dbaac51"},
 ]
 virtualenv = [
     {file = "virtualenv-20.13.0-py2.py3-none-any.whl", hash = "sha256:339f16c4a86b44240ba7223d0f93a7887c3ca04b5f9c8129da7958447d079b09"},

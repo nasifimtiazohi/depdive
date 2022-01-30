@@ -945,5 +945,5 @@ def test_code_review_aiohttp():
     ca.stats.print()
 
 def test_temp():
-    ca = CodeReviewAnalysis(NPM, "snapdragon-util", "1.0.5", "1.0.6")
+    ca = CodeReviewAnalysis(PYPI, "jedi", "0.15.1", "0.15.2")
     ca.stats.print()
