@@ -10,6 +10,7 @@ from depdive.repository_diff import (
     SingleCommitFileChangeData,
     get_repository_file_list,
     UncertainSubdir,
+    sort_commits_by_commit_date,
 )
 from depdive.code_review_checker import CommitReviewInfo
 
@@ -256,8 +257,14 @@ class CodeReviewAnalysis:
         def map_submdule_to_added_lines(f, repo_f):
             for path in repository_diff.submodule_paths:
                 if "{}/".format(path) in repo_f:
-                    commit = repository_diff.submodule_paths[path][-1]
+                    commits = sort_commits_by_commit_date(
+                        repository_diff.repo_path, list(repository_diff.diff[repo_f].commits)
+                    )
+                    assert commits, "no commit found for submodule {}".format(path)
+                    commit = commits[-1]
+
                     added_lines = [process_whitespace(l) for l in registry_diff.diff[f].added_lines]
+                    added_lines = [l for l in added_lines if l]
                     self.added_loc_to_commit_map[f] = {commit: added_lines}
                     return True
             return False
@@ -293,8 +300,14 @@ class CodeReviewAnalysis:
         def map_submdule_to_removed_lines(f, repo_f):
             for path in repository_diff.submodule_paths:
                 if "{}/".format(path) in repo_f:
-                    commit = repository_diff.submodule_paths[path][0]
+                    commits = sort_commits_by_commit_date(
+                        repository_diff.repo_path, list(repository_diff.diff[repo_f].commits)
+                    )
+                    assert commits, "no commit found for submodule {}".format(path)
+                    commit = commits[0]
+
                     removed_lines = [process_whitespace(l) for l in registry_diff.diff[f].removed_lines]
+                    removed_lines = [l for l in removed_lines if l]
                     self.removed_loc_to_commit_map[f] = {commit: removed_lines}
                     return True
             return False

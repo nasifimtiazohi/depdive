@@ -934,7 +934,7 @@ def test_code_review_libssh2():
     assert stats.phantom_files == 3
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
-    assert stats.reviewed_lines == 2537
+    assert stats.reviewed_lines == 2533
     assert stats.non_reviewed_lines == 0
     assert stats.total_commit_count == 2
     assert stats.reviewed_commit_count == 2
@@ -946,7 +946,7 @@ def test_code_review_aiohttp():
     ca.stats.print()
 
 
-def test_temp():
+def test_code_review_clear_on_drop():
     ca = CodeReviewAnalysis(CARGO, "clear_on_drop", "0.2.1", "0.2.2")
     stats = ca.stats
     assert stats.phantom_files == 0
@@ -956,3 +956,16 @@ def test_temp():
     assert stats.non_reviewed_lines == 120
     assert stats.total_commit_count == 5
     assert stats.reviewed_commit_count == 4
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_temp():
+    ca = CodeReviewAnalysis(RUBYGEMS, "rugged", "1.0.0", "1.0.1")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 134
+    assert stats.non_reviewed_lines == 0
+    assert stats.total_commit_count == 7
+    assert stats.reviewed_commit_count == 7

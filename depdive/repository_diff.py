@@ -1,3 +1,4 @@
+from re import L
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
@@ -226,6 +227,18 @@ def valid_commit(repo_path, commit):
         return False
 
 
+def sort_commits_by_commit_date(repo_path, commits):
+    repo = Repo(repo_path)
+    sorted_commits = []
+    for c in commits:
+        c = repo.commit(c)
+        d = c.committed_date
+        sorted_commits.append((c, d))
+    sorted_commits = sorted(sorted_commits, key=lambda x: x[1])
+    sorted_commits = [x[0].hexsha for x in sorted_commits]
+    return sorted_commits
+
+
 class RepositoryDiff:
     def __init__(
         self, ecosystem, package, repository, old_version, new_version, old_version_commit=None, new_version_commit=None
@@ -239,14 +252,14 @@ class RepositoryDiff:
         self._temp_dir = None
         self.repo_path = None
 
-        self.submodule_paths: dict[str, list(str)] = {}
-
         self.old_version_commit = old_version_commit
         self.new_version_commit = new_version_commit
 
         self.old_version_subdir = None  # package directory at the old version commit
         self.new_version_subdir = None  # package directory at the new version commit
         self.common_ancestor_commit_new_and_old_version = None
+
+        self.submodule_paths = []
 
         self.commits = None
         self.reverse_commits = None
@@ -278,12 +291,7 @@ class RepositoryDiff:
         repo.submodule_update(recursive=True)
         repo.git.checkout(head, force=True)
 
-        for sm in repo.submodules:
-            path = sm.path
-            commits = get_all_commits_on_file(self.repo_path, path, self.old_version_commit, self.new_version_commit)[
-                ::-1
-            ]
-            self.submodule_paths[path] = commits
+        self.submodule_paths = [x.path for x in repo.submodules]
 
     def build_repository_diff(self):
         if not self.repo_path:
