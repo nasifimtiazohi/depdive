@@ -935,7 +935,7 @@ def test_code_review_libssh2():
     assert stats.phantom_files == 3
     assert stats.files_with_phantom_lines == 0
     assert stats.phantom_lines == 0
-    assert stats.reviewed_lines == 2533
+    assert stats.reviewed_lines == 2537
     assert stats.non_reviewed_lines == 0
     assert stats.total_commit_count == 2
     assert stats.reviewed_commit_count == 2
