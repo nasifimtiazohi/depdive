@@ -136,12 +136,10 @@ class CodeReviewAnalysis:
     def _get_phantom_lines_in_a_file(self, registry_file_diff, repo_file_diff):
         phantom = {}
         for l in registry_file_diff:
-            # print(l)
             if (
                 l not in repo_file_diff.changed_lines
                 or registry_file_diff[l].delta() != repo_file_diff.changed_lines[l].delta()
             ):
-                # print("phantom", l)
                 phantom[l] = LineDelta(registry_file_diff[l].additions, registry_file_diff[l].deletions)
                 if l in repo_file_diff.changed_lines:
                     phantom[l].subtract(repo_file_diff.changed_lines[l])
@@ -165,7 +163,6 @@ class CodeReviewAnalysis:
             repository_diff.repo_path, repository_diff.new_version_commit
         )
         for f in registry_diff.diff.keys():
-            print(f)
             registry_file_diff = self._get_registry_file_line_counter(registry_diff.diff[f])
             self.registry_diff[f] = registry_file_diff
 
@@ -186,7 +183,6 @@ class CodeReviewAnalysis:
             phantom_lines = self._get_phantom_lines_in_a_file(
                 registry_file_diff, repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
             )
-            print(repo_f)
             if phantom_lines:
                 # try looking beyond the initial commit boundary
                 has_commit_boundary_changed = repository_diff.traverse_beyond_new_version_commit(
@@ -215,8 +211,6 @@ class CodeReviewAnalysis:
             self._locate_repository()
 
         registry_diff = get_registry_version_diff(self.ecosystem, self.package, self.old_version, self.new_version)
-        print("registry diff completed")
-        print(len(registry_diff.diff.keys()))
         repository_diff = RepositoryDiff(
             self.ecosystem,
             self.package,
@@ -226,7 +220,6 @@ class CodeReviewAnalysis:
             old_version_commit=registry_diff.old_version_git_sha,
             new_version_commit=registry_diff.new_version_git_sha,
         )
-        print("repository diff completed")
 
         # checking package directory
         if repository_diff.old_version_subdir != repository_diff.new_version_subdir:
@@ -242,7 +235,6 @@ class CodeReviewAnalysis:
         phantom_lines_processed = False
         while not phantom_lines_processed:
             phantom_lines_processed = self._proccess_phantom_lines(registry_diff, repository_diff)
-        print("phantom lines completed")
 
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
@@ -298,7 +290,7 @@ class CodeReviewAnalysis:
             # check if file is in a submodule
             if map_submdule_to_added_lines(f, repo_f):
                 continue
-            print(f)
+
             c2c = repository_diff.git_blame(repo_f, repository_diff.new_version_commit)
 
             for commit in list(c2c.keys()):
@@ -347,7 +339,7 @@ class CodeReviewAnalysis:
 
             if map_submdule_to_removed_lines(f, repo_f):
                 continue
-            print(f)
+
             c2c = repository_diff.git_blame_delete(
                 repo_f, repository_diff.common_ancestor_commit_new_and_old_version, repository_diff.new_version_commit
             )

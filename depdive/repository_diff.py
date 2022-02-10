@@ -379,7 +379,6 @@ class RepositoryDiff:
                 self.diff[filepath].changed_lines[line] = self.diff[filepath].changed_lines.get(line, {})
                 for commit in diff[filepath].changed_lines[line].keys():
                     if commit not in self.diff[filepath].changed_lines[line]:
-                        print(commit)
                         self.diff[filepath].commits.add(commit)
                         self.diff[filepath].changed_lines[line][commit] = diff[filepath].changed_lines[line]
             self.commits |= self.diff[filepath].commits
