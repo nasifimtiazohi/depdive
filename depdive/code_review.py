@@ -1,4 +1,3 @@
-from package_locator.common import NPM
 from version_differ.version_differ import FileDiff
 from package_locator.locator import get_repository_url_and_subdir
 from depdive.common import LineDelta, process_whitespace
