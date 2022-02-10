@@ -983,3 +983,8 @@ def test_code_review_thrift():
     assert stats.phantom_files == 0
     print(ca.phantom_lines.keys())
     print(ca.phantom_lines["LICENSE"].keys())
+
+
+@pytest.mark.skip(reason="to limit API calls")
+def test_azure():
+    ca = CodeReviewAnalysis(PYPI, "azure-mgmt-network", "17.0.0", "17.1.0")

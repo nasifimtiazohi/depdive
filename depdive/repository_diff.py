@@ -1,3 +1,4 @@
+from audioop import add
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
@@ -238,6 +239,12 @@ def sort_commits_by_commit_date(repo_path, commits):
     return sorted_commits
 
 
+def get_file_add_commit(repo_path, filepath):
+    repo = Repo(repo_path)
+    commits = repo.git.log("--pretty=%H", "--diff-filter=A", "--", filepath).split("\n")
+    return commits[0]
+
+
 class RepositoryDiff:
     def __init__(
         self, ecosystem, package, repository, old_version, new_version, old_version_commit=None, new_version_commit=None
@@ -353,33 +360,17 @@ class RepositoryDiff:
         if filepath in self.diff and not set(commits) - self.diff[filepath].commits:
             return
 
+        add_commit = get_file_add_commit(self.repo_path, filepath)
+        if filepath in self.diff and add_commit in self.diff[filepath].commits:
+            return
+
         single_diff = SingleCommitFileChangeData(filepath)
         lines = get_file_lines(self.repo_path, end_commit, filepath)
         for l in lines:
             l = process_whitespace(l)
-            single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
-            single_diff.changed_lines[l].additions += 1
-
-        if (
-            filepath in self.single_diff
-            and len(single_diff.changed_lines) == len(self.single_diff[filepath].changed_lines)
-            and sum(
-                [
-                    (single_diff.changed_lines[l].additions + single_diff.changed_lines[l].deletions)
-                    for l in single_diff.changed_lines
-                ]
-            )
-            == sum(
-                [
-                    (
-                        self.single_diff[filepath].changed_lines[l].additions
-                        + self.single_diff[filepath].changed_lines[l].deletions
-                    )
-                    for l in self.single_diff[filepath].changed_lines
-                ]
-            )
-        ):
-            return
+            if l:
+                single_diff.changed_lines[l] = single_diff.changed_lines.get(l, LineDelta())
+                single_diff.changed_lines[l].additions += 1
 
         diff = self.get_commit_diff_stats_from_repo(self.repo_path, commits)
         if filepath in diff:
@@ -388,6 +379,7 @@ class RepositoryDiff:
                 self.diff[filepath].changed_lines[line] = self.diff[filepath].changed_lines.get(line, {})
                 for commit in diff[filepath].changed_lines[line].keys():
                     if commit not in self.diff[filepath].changed_lines[line]:
+                        print(commit)
                         self.diff[filepath].commits.add(commit)
                         self.diff[filepath].changed_lines[line][commit] = diff[filepath].changed_lines[line]
             self.commits |= self.diff[filepath].commits
