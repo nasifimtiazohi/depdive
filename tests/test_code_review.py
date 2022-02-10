@@ -42,7 +42,10 @@ def test_code_review_guppy():
 
     assert cl == rl
 
+    
+    print(al, rl)
     stats = ca.stats
+    assert stats.reviewed_lines + stats.non_reviewed_lines == al+rl
     assert stats.reviewed_lines == 11
     assert stats.non_reviewed_lines == 246
     assert stats.total_commit_count == 14
@@ -975,3 +978,10 @@ def test_code_review_rugged():
 @pytest.mark.skip(reason="to limit API calls")
 def test_code_review_jedi():
     ca = CodeReviewAnalysis(PYPI, "jedi", "0.15.1", "0.15.2")
+
+def test_code_review_thrift():
+    ca = CodeReviewAnalysis(PYPI, "thrift", "0.11.0", "0.13.0")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    print(ca.phantom_lines.keys())
+    print(ca.phantom_lines['LICENSE'].keys())
