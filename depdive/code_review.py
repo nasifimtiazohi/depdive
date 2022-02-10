@@ -1,5 +1,3 @@
-from audioop import add
-import re
 from package_locator.common import NPM
 from version_differ.version_differ import FileDiff
 from package_locator.locator import get_repository_url_and_subdir
@@ -112,10 +110,10 @@ class CodeReviewAnalysis:
         subdir = self.directory.removeprefix("./").removesuffix("/")
         repo_f = subdir + "/" + filepath if subdir else filepath
 
-        if filepath == 'LICENSE':
+        if filepath == "LICENSE":
             if repo_f not in repo_file_list and filepath in repo_file_list:
                 return filepath
-        
+
         return repo_f
 
     def _process_phantom_files(self, registry_diff, repo_file_list):
@@ -249,7 +247,11 @@ class CodeReviewAnalysis:
         for f in registry_diff.diff.keys():
             repo_files = [self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)]
             if registry_diff.diff[f].is_rename:
-                repo_files += [self.get_repo_path_from_registry_path(registry_diff.diff[f].source_file, repository_diff.new_version_file_list)]
+                repo_files += [
+                    self.get_repo_path_from_registry_path(
+                        registry_diff.diff[f].source_file, repository_diff.new_version_file_list
+                    )
+                ]
             for repo_f in repo_files:
                 if repo_f in repository_diff.diff.keys():
                     for commit in repository_diff.diff[repo_f].commits:

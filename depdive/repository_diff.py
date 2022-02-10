@@ -1,4 +1,3 @@
-from re import L
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release

@@ -1,4 +1,3 @@
-from atexit import register
 from package_locator.common import CARGO, PYPI
 from version_differ.common import PIP
 from version_differ.version_differ import get_version_diff_stats
