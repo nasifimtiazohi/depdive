@@ -988,3 +988,4 @@ def test_code_review_thrift():
 @pytest.mark.skip(reason="to limit API calls")
 def test_azure():
     ca = CodeReviewAnalysis(PYPI, "azure-mgmt-network", "17.0.0", "17.1.0")
+    ca.stats.print()
