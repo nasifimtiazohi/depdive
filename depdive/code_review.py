@@ -163,6 +163,11 @@ class CodeReviewAnalysis:
         new_version_repo_filelist = get_repository_file_list(
             repository_diff.repo_path, repository_diff.new_version_commit
         )
+
+        repo = Repo(repository_diff.repo_path)
+        head = repo.head.object.hexsha
+        repo.git.checkout(repository_diff.common_ancestor_commit_new_and_old_version, force=True)
+
         for f in registry_diff.diff.keys():
             registry_file_diff = self._get_registry_file_line_counter(registry_diff.diff[f])
             self.registry_diff[f] = registry_file_diff
@@ -196,6 +201,7 @@ class CodeReviewAnalysis:
 
             if phantom_lines:
                 self.phantom_lines[f] = phantom_lines
+        repo.git.checkout(head, force=True)
         return True
 
     def _filter_out_phantom_files(self, registry_diff):

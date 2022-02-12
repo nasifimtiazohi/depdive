@@ -1,4 +1,3 @@
-from audioop import add
 from git import Repo
 from unidiff import PatchSet
 from version_differ.version_differ import get_commit_of_release
@@ -182,21 +181,6 @@ def get_repository_file_list(repo_path, commit):
     return set(filelist)
 
 
-def get_file_lines(repo_path, commit, filepath):
-    repo = Repo(repo_path)
-    head = repo.head.object.hexsha
-
-    repo.git.checkout(commit, force=True)
-    try:
-        with open(join(repo_path, filepath), "r") as f:
-            lines = f.readlines()
-    except:
-        raise FileReadError(filepath)
-
-    repo.git.checkout(head, force=True)
-    return lines
-
-
 def is_same_commit(sha_a, sha_b):
     return sha_a.startswith(sha_b) or sha_b.startswith(sha_a)
 
@@ -365,7 +349,11 @@ class RepositoryDiff:
             return
 
         single_diff = SingleCommitFileChangeData(filepath)
-        lines = get_file_lines(self.repo_path, end_commit, filepath)
+        try:
+            with open(join(self.repo_path, filepath), "r") as f:
+                lines = f.readlines()
+        except:
+            raise FileReadError(filepath)
         for l in lines:
             l = process_whitespace(l)
             if l:
