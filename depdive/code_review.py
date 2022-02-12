@@ -10,6 +10,7 @@ from depdive.repository_diff import (
     sort_commits_by_commit_date,
 )
 from depdive.code_review_checker import CommitReviewInfo
+from git import Repo
 
 
 class PackageDirectoryChanged(Exception):
@@ -327,6 +328,10 @@ class CodeReviewAnalysis:
             if registry_diff.diff[f].source_file and registry_diff.diff[f].removed_lines:
                 files_with_removed_lines.add(registry_diff.diff[f].source_file)
 
+        repo = Repo(repository_diff.repo_path)
+        head = repo.head.object.hexsha
+        repo.git.checkout(repository_diff.common_ancestor_commit_new_and_old_version, force=True)
+
         for f in files_with_removed_lines:
             repo_f = self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)
 
@@ -351,6 +356,7 @@ class CodeReviewAnalysis:
                     c2c[commit] = [l for l in c2c[commit] if l]
 
             self.removed_loc_to_commit_map[f] = c2c
+        repo.git.checkout(head, force=True)
 
     def get_stats(self):
         added_reviewed_lines = added_non_reviewed_lines = 0

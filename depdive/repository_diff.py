@@ -565,7 +565,11 @@ class RepositoryDiff:
         return files
 
     def git_blame_delete(self, filepath, start_commit, new_version_commit):
-        filelines = get_file_lines(self.repo_path, start_commit, filepath)
+        try:
+            with open(join(self.repo_path, filepath), "r") as f:
+                filelines = f.readlines()
+        except:
+            raise FileReadError(filepath)
         filelines = [process_whitespace(l.strip()) for l in filelines]
 
         cmd = "cd {path};git blame --reverse -l {start_commit}..{end_commit} {fname}".format(
