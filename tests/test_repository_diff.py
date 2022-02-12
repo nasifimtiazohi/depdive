@@ -156,14 +156,15 @@ def test_repository_git_blame_delete():
     start_commit = "31fa94208034cb7581a81b06045ff2cf51057b40"
     repo_diff = RepositoryDiff(NPM, "chalk", repository, "4.0.0", "5.0.0")
     file = "package.json"
-    with tempfile.TemporaryDirectory() as repo_path:
-        Repo.clone_from(repository, repo_path)
-        c2c = repo_diff.git_blame_delete(file, start_commit, end_commit)
-        lines = 0
-        for c in c2c.keys():
-            lines += len(c2c[c])
-        assert lines == 24
-        assert len(c2c) == 8
+    repo = Repo(repo_diff.repo_path)
+    repo.git.checkout(start_commit, force=True)
+
+    c2c = repo_diff.git_blame_delete(file, start_commit, end_commit)
+    lines = 0
+    for c in c2c.keys():
+        lines += len(c2c[c])
+    assert lines == 24
+    assert len(c2c) == 8
 
 
 def test_repository_common_ancestor():
