@@ -166,7 +166,7 @@ class CodeReviewAnalysis:
 
         repo = Repo(repository_diff.repo_path)
         head = repo.head.object.hexsha
-        repo.git.checkout(repository_diff.common_ancestor_commit_new_and_old_version, force=True)
+        repo.git.checkout(repository_diff.new_version_commit, force=True)
 
         for f in registry_diff.diff.keys():
             registry_file_diff = self._get_registry_file_line_counter(registry_diff.diff[f])
@@ -191,16 +191,18 @@ class CodeReviewAnalysis:
             )
             if phantom_lines:
                 # try looking beyond the initial commit boundary
+                repo.git.checkout(head, force=True)
                 has_commit_boundary_changed = repository_diff.traverse_beyond_new_version_commit(
                     repo_f,
                     phantom_lines.copy(),
                 )
-
                 if has_commit_boundary_changed:
                     return False
+                repo.git.checkout(repository_diff.new_version_commit, force=True)
 
             if phantom_lines:
                 self.phantom_lines[f] = phantom_lines
+
         repo.git.checkout(head, force=True)
         return True
 
