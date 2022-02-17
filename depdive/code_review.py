@@ -136,6 +136,8 @@ class CodeReviewAnalysis:
 
     def _get_phantom_lines_in_a_file(self, registry_file_diff, repo_file_diff):
         phantom = {}
+        #TODO: should we check lines in the repository file that are not in registry file?
+        #      the removal can be dangerous as well
         for l in registry_file_diff:
             if (
                 l not in repo_file_diff.changed_lines
