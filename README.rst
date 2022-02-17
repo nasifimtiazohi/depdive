@@ -31,6 +31,9 @@ depdive
    :target: https://github.com/psf/black
    :alt: Black
 
+Workflow
+--------
+.. |workflow| image: docs/images/depdive.drawio.png
 
 Features
 --------
