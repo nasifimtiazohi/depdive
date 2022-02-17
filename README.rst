@@ -33,7 +33,7 @@ depdive
 
 Workflow
 --------
-.. |workflow| image: docs/images/depdive.drawio.png
+.. image:: docs/images/depdive.drawio.png
 
 Features
 --------
