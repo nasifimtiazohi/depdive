@@ -1142,7 +1142,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "version-differ"
-version = "0.3.12"
+version = "0.3.14"
 description = "Accurate diffing between two versions of a project"
 category = "main"
 optional = false
@@ -1219,7 +1219,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "4d24a66e179a968b390e244cd8d08bf5dc3763c480e002fd81bc397917f68d61"
+content-hash = "511373fe2bd4e7cff1c49b31ceea3bad73e580d86f26e3f17bac0159aa2a5c8d"
 
 [metadata.files]
 alabaster = [
@@ -2023,8 +2023,8 @@ urllib3 = [
     {file = "urllib3-1.26.8.tar.gz", hash = "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"},
 ]
 version-differ = [
-    {file = "version-differ-0.3.12.tar.gz", hash = "sha256:966a707927d6b571e85ba5348e3473c13e67aa6ae7114269159a7dc90e10b561"},
-    {file = "version_differ-0.3.12-py3-none-any.whl", hash = "sha256:250e0621f1c9329bf704422b4574f0be1797e1d68f0892191b8ef5e92dbaac51"},
+    {file = "version-differ-0.3.14.tar.gz", hash = "sha256:f538df91b0b8cf79feb5f828131889e91cd8b5dea62718f9d52585614e8f36b8"},
+    {file = "version_differ-0.3.14-py3-none-any.whl", hash = "sha256:7a5bad92a88ba3962b332d26757224b46659f4eff152a60dda52a3bcf94a7842"},
 ]
 virtualenv = [
     {file = "virtualenv-20.13.0-py2.py3-none-any.whl", hash = "sha256:339f16c4a86b44240ba7223d0f93a7887c3ca04b5f9c8129da7958447d079b09"},

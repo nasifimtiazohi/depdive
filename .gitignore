@@ -136,3 +136,5 @@ dmypy.json
 
 # Coala
 *.orig
+
+.DS_Store
