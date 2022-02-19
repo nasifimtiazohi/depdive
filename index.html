@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>depdive &mdash; depdive 0.0.37 documentation</title>
+  <title>DepDive &mdash; depdive 0.0.37 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/custom_cookietemple.css" type="text/css" />
@@ -23,7 +23,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="depdive" href="readme.html" /> 
+    <link rel="next" title="DepDive" href="readme.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,7 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">depdive</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">DepDive</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference.html">Reference</a></li>
@@ -69,7 +69,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
-      <li>depdive</li>
+      <li>DepDive</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -80,16 +80,26 @@
            <div itemprop="articleBody">
              
   <section id="depdive">
-<h1>depdive<a class="headerlink" href="#depdive" title="Permalink to this headline"></a></h1>
+<h1>DepDive<a class="headerlink" href="#depdive" title="Permalink to this headline"></a></h1>
 <p><a class="reference external" href="https://pypi.org/project/depdive/"><img alt="PyPI" src="https://img.shields.io/pypi/v/depdive.svg" /></a> <a class="reference external" href="https://pypi.org/project/depdive"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/depdive" /></a> <a class="reference external" href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/github/license/nasifimtiazohi/depdive" /></a> <a class="reference external" href="https://depdive.readthedocs.io/"><img alt="Read the documentation at https://depdive.readthedocs.io/" src="https://img.shields.io/readthedocs/depdive/latest.svg?label=Read%20the%20Docs" /></a> <a class="reference external" href="https://github.com/nasifimtiazohi/depdive/actions?workflow=Package"><img alt="Build Package Status" src="https://github.com/nasifimtiazohi/depdive/workflows/Build%20depdive%20Package/badge.svg" /></a> <a class="reference external" href="https://github.com/nasifimtiazohi/depdive/actions?workflow=Tests"><img alt="Run Tests Status" src="https://github.com/nasifimtiazohi/depdive/workflows/Run%20depdive%20Tests/badge.svg" /></a> <a class="reference external" href="https://codecov.io/gh/nasifimtiazohi/depdive"><img alt="Codecov" src="https://codecov.io/gh/nasifimtiazohi/depdive/branch/master/graph/badge.svg" /></a> <a class="reference external" href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a> <a class="reference external" href="https://github.com/psf/black"><img alt="Black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a></p>
+<p>Each time you accept a dependency update, you are pulling in new third-party code. However, how to ensure that the update is secure?</p>
+<p>One way to put a security (and quality) control check before accepting an update is to check what part of the code changes have passed through a code review process. DepDive automates this check.</p>
 <section id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline"></a></h2>
+<p>DepDive maps code changes between two versions of a package uploaded in the registry to the corresponding commits that made these changes in the package’s
+source code repository. DepDive then identifies if there was a code reviewer for the mapped commits through rule-based checks for evidences of code review on GitHub.</p>
+<p>Along the process, DepDive also outputs phantom artifacts, that is, files and lines that are present in the registry, but not present in the repository. Example of phantom files can be compiles binaries in PyPI packages, transpiled JavaScript in npm, and other auto-generated files. Not to mention, malicious actors can sneak in code in the last mile between the repository and the registry.</p>
+<p>DepDive works for four package registries: (1) Crates.io (Rust), (2) npm (JavaScript), (3) PyPI (Python), (4) RubyGems (Ruby).
+Currently, DepDive only works for GitHub repositories, as GitHub is our primary source to check for code-review.</p>
 <img alt="docs/images/depdive.drawio.png" src="docs/images/depdive.drawio.png" />
 </section>
 <section id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline"></a></h2>
 <ul class="simple">
-<li><p>TODO</p></li>
+<li><p>Outputs changes that have been code reviewed and that have not in a depednency update. You can calculate the code reviewe coverage from the output by diving the revewed lines of code changes by the total lines of code of changes in an update.</p></li>
+<li><p>Outputs the reviewed and non-reviewed commits, and how we determined if a commit was code-reviewed, and the actors involved in the review.</p></li>
+<li><p>Outputs files that are present in the update version downloaded from the registry, but not in the repository.</p></li>
+<li><p>Updates lines of code changes that are present in the udpate, but cannot be mapped to changes in the repository.</p></li>
 </ul>
 </section>
 <section id="installation">
@@ -101,7 +111,47 @@
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h2>
-<p>Please see the <a class="reference external" href="https://depdive.readthedocs.io/en/latest/usage.html">Command-line Reference</a> for details.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ca</span> <span class="o">=</span> <span class="n">CodeReviewAnalysis</span><span class="p">(</span><span class="n">CARGO</span><span class="p">,</span> <span class="s2">&quot;tokio&quot;</span><span class="p">,</span> <span class="s2">&quot;1.8.4&quot;</span><span class="p">,</span> <span class="s2">&quot;1.9.0&quot;</span><span class="p">)</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">stats</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_files</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">files_with_phantom_lines</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_lines</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_lines</span> <span class="o">==</span> <span class="mi">3694</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">non_reviewed_lines</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">total_commit_count</span> <span class="o">==</span> <span class="mi">29</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_commit_count</span> <span class="o">==</span> <span class="mi">29</span>
+
+<span class="n">ca</span> <span class="o">=</span> <span class="n">CodeReviewAnalysis</span><span class="p">(</span><span class="n">RUBYGEMS</span><span class="p">,</span> <span class="s2">&quot;pundit&quot;</span><span class="p">,</span> <span class="s2">&quot;2.1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;2.1.1&quot;</span><span class="p">)</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">stats</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_files</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">files_with_phantom_lines</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_lines</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_lines</span> <span class="o">==</span> <span class="mi">128</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">non_reviewed_lines</span> <span class="o">==</span> <span class="mi">186</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">total_commit_count</span> <span class="o">==</span> <span class="mi">35</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_commit_count</span> <span class="o">==</span> <span class="mi">23</span>
+
+<span class="n">ca</span> <span class="o">=</span> <span class="n">CodeReviewAnalysis</span><span class="p">(</span><span class="n">PYPI</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">,</span> <span class="s2">&quot;1.21.4&quot;</span><span class="p">,</span> <span class="s2">&quot;1.21.5&quot;</span><span class="p">)</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">stats</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_files</span> <span class="o">==</span> <span class="mi">39</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">files_with_phantom_lines</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_lines</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_lines</span> <span class="o">==</span> <span class="mi">245</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">non_reviewed_lines</span> <span class="o">==</span> <span class="mi">12</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">total_commit_count</span> <span class="o">==</span> <span class="mi">10</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_commit_count</span> <span class="o">==</span> <span class="mi">9</span>
+
+<span class="n">ca</span> <span class="o">=</span> <span class="n">CodeReviewAnalysis</span><span class="p">(</span><span class="n">NPM</span><span class="p">,</span> <span class="s2">&quot;lodash&quot;</span><span class="p">,</span> <span class="s2">&quot;4.17.20&quot;</span><span class="p">,</span> <span class="s2">&quot;4.17.21&quot;</span><span class="p">)</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">stats</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_files</span> <span class="o">==</span> <span class="mi">1046</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">files_with_phantom_lines</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_lines</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_lines</span> <span class="o">==</span> <span class="mi">58</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">non_reviewed_lines</span> <span class="o">==</span> <span class="mi">14</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">total_commit_count</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">reviewed_commit_count</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
 </section>
 <section id="credits">
 <h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline"></a></h2>
@@ -109,7 +159,7 @@
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">depdive</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">DepDive</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="readme.html#workflow">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="readme.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="readme.html#installation">Installation</a></li>
@@ -163,7 +213,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="readme.html" class="btn btn-neutral float-right" title="depdive" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="readme.html" class="btn btn-neutral float-right" title="DepDive" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
