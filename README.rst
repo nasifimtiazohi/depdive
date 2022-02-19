@@ -114,7 +114,12 @@ Usage
     assert stats.total_commit_count == 3
     assert stats.reviewed_commit_count == 2
     
-    
+
+Future Work
+------------
+
+* Also provides quality of the code review (e.g. what is the relation between the author and the reviewer? Was a sock account used to bypass code review check?)
+* What other checks should we perform for an update?
 
 Credits
 -------
