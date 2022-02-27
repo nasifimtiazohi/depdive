@@ -222,6 +222,7 @@ class CodeReviewAnalysis:
             self._locate_repository()
 
         registry_diff = get_registry_version_diff(self.ecosystem, self.package, self.old_version, self.new_version)
+        print("!")
         repository_diff = RepositoryDiff(
             self.ecosystem,
             self.package,
@@ -231,6 +232,7 @@ class CodeReviewAnalysis:
             old_version_commit=registry_diff.old_version_git_sha,
             new_version_commit=registry_diff.new_version_git_sha,
         )
+        print("!")
 
         # checking package directory
         if repository_diff.old_version_subdir != repository_diff.new_version_subdir:
@@ -246,13 +248,14 @@ class CodeReviewAnalysis:
         phantom_lines_processed = False
         while not phantom_lines_processed:
             phantom_lines_processed = self._proccess_phantom_lines(registry_diff, repository_diff)
-
+        print("!")
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
 
         self.map_commit_to_added_lines(repository_diff, registry_diff)
+        print("!")
         self.map_commit_to_removed_lines(repository_diff, registry_diff)
-
+        print("!")
         for f in registry_diff.diff.keys():
             repo_files = [self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)]
             if registry_diff.diff[f].is_rename:

@@ -989,3 +989,9 @@ def test_code_review_thrift():
 def test_azure():
     ca = CodeReviewAnalysis(PYPI, "azure-mgmt-network", "17.0.0", "17.1.0")
     ca.stats.print()
+
+def test_code_review_libgit2():
+    ca = CodeReviewAnalysis(CARGO, "khronos_api", "0.0.7", "0.0.8")
+    print(ca.phantom_files)
+    stats = ca.stats
+    stats.print()

@@ -257,7 +257,7 @@ class RepositoryDiff:
         self.diff = None  # diff across individual commits
         self.new_version_file_list = None
         self.single_diff = None  # single diff from old to new
-
+        print("!!")
         self.build_repository_diff()
 
     def get_commit_of_release(self, version):
@@ -273,16 +273,18 @@ class RepositoryDiff:
     def _process_submodules(self):
         repo = Repo(self.repo_path)
         repo.submodule_update(recursive=True, init=True)
-
+        print("F")
         head = repo.head.object.hexsha
         try:
             repo.git.checkout(self.old_version_commit, force=True)
             repo.submodule_update(recursive=True)
+            print("F")
         except:
             pass
         try:
             repo.git.checkout(self.new_version_commit, force=True)
             repo.submodule_update(recursive=True)
+            print("F")
         except:
             pass
         repo.git.checkout(head, force=True)
@@ -303,6 +305,7 @@ class RepositoryDiff:
         ):
             self.old_version_commit = self.get_commit_of_release(self.old_version)
             self.new_version_commit = self.get_commit_of_release(self.new_version)
+            print("!!")
 
             if not self.old_version_commit or not self.new_version_commit:
                 raise ReleaseCommitNotFound
@@ -330,6 +333,7 @@ class RepositoryDiff:
         self.reverse_commits = set(
             get_doubledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit)
         )
+        print("!!")
         self.diff = self.get_commit_diff_stats_from_repo(self.repo_path, list(self.commits), list(self.reverse_commits))
 
         self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
@@ -337,6 +341,7 @@ class RepositoryDiff:
         self.single_diff = self.get_diff_files(
             get_inbetween_commit_diff(self.repo_path, self.old_version_commit, self.new_version_commit)
         )
+        print("!!")
 
     def get_full_file_history(self, filepath, end_commit="HEAD"):
         """get commit history of filepath upto given commit point"""
