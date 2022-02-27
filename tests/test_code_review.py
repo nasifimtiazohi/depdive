@@ -1003,6 +1003,7 @@ def test_code_review_retry():
     assert stats.reviewed_commit_count == 1
 
 
+@pytest.mark.skip(reason="to limit API calls")
 def test_code_review_dill():
     ca = CodeReviewAnalysis(PYPI, "dill", "0.2.7.1", "0.2.8")
     stats = ca.stats
@@ -1013,3 +1014,15 @@ def test_code_review_dill():
     assert stats.non_reviewed_lines == 811
     assert stats.total_commit_count == 19
     assert stats.reviewed_commit_count == 0
+
+
+def test_temp():
+    ca = CodeReviewAnalysis(
+        PYPI,
+        "google-api-python-client",
+        "2.33.0",
+        "2.34.0",
+        "https://github.com/googleapis/google-api-python-client",
+        "./",
+    )
+    ca.stats.print()

@@ -8,11 +8,9 @@ from depdive.repository_diff import (
     get_repository_file_list,
     UncertainSubdir,
     sort_commits_by_commit_date,
-    FileReadError,
 )
 from depdive.code_review_checker import CommitReviewInfo
 from git import Repo
-from os.path import join
 
 
 class PackageDirectoryChanged(Exception):

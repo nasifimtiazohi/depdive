@@ -82,10 +82,8 @@ class CommitReviewInfo:
                 self.github_repo = self.g.get_repo(self.repo_full_name)
                 self.github_commit = self.github_repo.get_commit(self.commit_sha)
             except github.RateLimitExceededException:
-                if self.g.get_rate_limit().core.remaining == 0:
-                    # loop again with a new token
-                    self.g = self._get_github_caller()
-                    continue
+                self.g = self._get_github_caller()
+                continue
             except github.UnknownObjectException:
                 raise GitHubAPIUnknownObject
 
@@ -115,7 +113,7 @@ class CommitReviewInfo:
 
         for k in tokens.keys():
             g = Github(tokens[k])
-            if g.get_rate_limit().core.remaining > 0:
+            if g.get_rate_limit().core.remaining > 100:
                 return g
         raise AllGitHubTokensRateLimitExceeded
 
