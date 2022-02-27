@@ -990,8 +990,26 @@ def test_azure():
     ca = CodeReviewAnalysis(PYPI, "azure-mgmt-network", "17.0.0", "17.1.0")
     ca.stats.print()
 
-def test_code_review_libgit2():
-    ca = CodeReviewAnalysis(CARGO, "khronos_api", "0.0.7", "0.0.8")
-    print(ca.phantom_files)
+
+def test_code_review_retry():
+    ca = CodeReviewAnalysis(PYPI, "retry", "0.8.1", "0.9.0")
     stats = ca.stats
-    stats.print()
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 147
+    assert stats.non_reviewed_lines == 0
+    assert stats.total_commit_count == 1
+    assert stats.reviewed_commit_count == 1
+
+
+def test_code_review_dill():
+    ca = CodeReviewAnalysis(PYPI, "dill", "0.2.7.1", "0.2.8")
+    stats = ca.stats
+    assert stats.phantom_files == 314
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 0
+    assert stats.non_reviewed_lines == 811
+    assert stats.total_commit_count == 19
+    assert stats.reviewed_commit_count == 0

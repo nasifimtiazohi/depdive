@@ -8,9 +8,11 @@ from depdive.repository_diff import (
     get_repository_file_list,
     UncertainSubdir,
     sort_commits_by_commit_date,
+    FileReadError,
 )
 from depdive.code_review_checker import CommitReviewInfo
 from git import Repo
+from os.path import join
 
 
 class PackageDirectoryChanged(Exception):
@@ -136,7 +138,7 @@ class CodeReviewAnalysis:
 
     def _get_phantom_lines_in_a_file(self, registry_file_diff, repo_file_diff):
         phantom = {}
-        #TODO: should we check lines in the repository file that are not in registry file?
+        # TODO: should we check lines in the repository file that are not in registry file?
         #      the removal can be dangerous as well
         for l in registry_file_diff:
             if (
@@ -188,9 +190,17 @@ class CodeReviewAnalysis:
                 # get full file history for such files
                 repository_diff.get_full_file_history(repo_f, end_commit=repository_diff.new_version_commit)
 
-            phantom_lines = self._get_phantom_lines_in_a_file(
-                registry_file_diff, repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
-            )
+            if (
+                not registry_diff.diff[f].source_file
+                and not registry_diff.diff[f].is_rename
+                and repo_f in repository_diff.diff.keys()
+                and repository_diff.diff[repo_f].is_rename
+            ):
+                single_diff = repository_diff.get_full_file_single_diff(repo_f)
+            else:
+                single_diff = repository_diff.single_diff.get(repo_f, SingleCommitFileChangeData())
+
+            phantom_lines = self._get_phantom_lines_in_a_file(registry_file_diff, single_diff)
             if phantom_lines:
                 # try looking beyond the initial commit boundary
                 repo.git.checkout(head, force=True)
@@ -222,7 +232,6 @@ class CodeReviewAnalysis:
             self._locate_repository()
 
         registry_diff = get_registry_version_diff(self.ecosystem, self.package, self.old_version, self.new_version)
-        print("!")
         repository_diff = RepositoryDiff(
             self.ecosystem,
             self.package,
@@ -232,7 +241,6 @@ class CodeReviewAnalysis:
             old_version_commit=registry_diff.old_version_git_sha,
             new_version_commit=registry_diff.new_version_git_sha,
         )
-        print("!")
 
         # checking package directory
         if repository_diff.old_version_subdir != repository_diff.new_version_subdir:
@@ -248,14 +256,13 @@ class CodeReviewAnalysis:
         phantom_lines_processed = False
         while not phantom_lines_processed:
             phantom_lines_processed = self._proccess_phantom_lines(registry_diff, repository_diff)
-        print("!")
+
         self.start_commit = repository_diff.old_version_commit
         self.end_commit = repository_diff.new_version_commit
 
         self.map_commit_to_added_lines(repository_diff, registry_diff)
-        print("!")
         self.map_commit_to_removed_lines(repository_diff, registry_diff)
-        print("!")
+
         for f in registry_diff.diff.keys():
             repo_files = [self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)]
             if registry_diff.diff[f].is_rename:
