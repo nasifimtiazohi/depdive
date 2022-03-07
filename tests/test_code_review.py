@@ -1033,7 +1033,7 @@ def test_code_review_x11_dl():
     assert stats.reviewed_commit_count == 1
 
 
-def test_temp():
+def test_code_review_bundler_audit():
     ca = CodeReviewAnalysis(RUBYGEMS, "bundler-audit", "0.4.0", "0.5.0")
     stats = ca.stats
     assert stats.phantom_files == 0
