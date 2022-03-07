@@ -255,7 +255,7 @@ class RepositoryDiff:
         self.reverse_commits = None
 
         self.diff = None  # diff across individual commits
-        self.new_version_file_list = None
+        self.new_version_filelist = None
         self.single_diff = None  # single diff from old to new
 
         self.build_repository_diff()
@@ -330,9 +330,9 @@ class RepositoryDiff:
             get_doubledot_inbetween_commits(self.repo_path, self.new_version_commit, self.old_version_commit)
         )
 
-        self.diff = self.get_commit_diff_stats_from_repo(self.repo_path, list(self.commits), list(self.reverse_commits))
+        self.new_version_filelist = get_repository_file_list(self.repo_path, self.new_version_commit)
 
-        self.new_version_file_list = get_repository_file_list(self.repo_path, self.new_version_commit)
+        self.diff = self.get_commit_diff_stats_from_repo(self.repo_path, list(self.commits), list(self.reverse_commits))
 
         self.single_diff = self.get_diff_files(
             get_inbetween_commit_diff(self.repo_path, self.old_version_commit, self.new_version_commit)
@@ -513,13 +513,6 @@ class RepositoryDiff:
             filepath = None
         return filepath
 
-    def is_package_file(self, filepath: str):
-        if not filepath:
-            return False
-        return filepath.startswith(self.old_version_subdir.removeprefix("./")) or filepath.startswith(
-            self.new_version_subdir.removeprefix("./")
-        )
-
     def get_diff_files(self, uni_diff_text):
         patch_set = PatchSet(uni_diff_text)
         files = {}
@@ -528,9 +521,6 @@ class RepositoryDiff:
             f = SingleCommitFileChangeData()
             f.source_file = self.process_patch_filepath(patched_file.source_file)
             f.target_file = self.process_patch_filepath(patched_file.target_file)
-
-            if not self.is_package_file(f.source_file) and not self.is_package_file(f.target_file):
-                continue
 
             f.is_rename = patched_file.is_rename
 

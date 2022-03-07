@@ -1016,13 +1016,18 @@ def test_code_review_dill():
     assert stats.reviewed_commit_count == 0
 
 
-def test_temp():
+def test_code_review_x11_dl():
     ca = CodeReviewAnalysis(
-        PYPI,
-        "google-api-python-client",
-        "2.33.0",
-        "2.34.0",
-        "https://github.com/googleapis/google-api-python-client",
-        "./",
+        CARGO,
+        "x11-dl",
+        "2.18.5",
+        "2.19.0",
     )
-    ca.stats.print()
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 89
+    assert stats.non_reviewed_lines == 4204
+    assert stats.total_commit_count == 10
+    assert stats.reviewed_commit_count == 1

@@ -11,6 +11,7 @@ from depdive.repository_diff import (
 )
 from depdive.code_review_checker import CommitReviewInfo
 from git import Repo
+import os
 
 
 class PackageDirectoryChanged(Exception):
@@ -106,17 +107,25 @@ class CodeReviewAnalysis:
     def _locate_repository(self):
         self.repository, self.directory = get_repository_url_and_subdir(self.ecosystem, self.package)
 
-    def get_repo_path_from_registry_path(self, filepath, repo_file_list):
+    def get_repo_path_from_registry_path(self, filepath, repository_diff):
+
         subdir = self.directory.removeprefix("./").removesuffix("/")
         repo_f = subdir + "/" + filepath if subdir else filepath
 
+        # TODO: below hack should go away?
         if filepath == "LICENSE":
-            if repo_f not in repo_file_list and filepath in repo_file_list:
+            if repo_f not in repository_diff.new_version_filelist and filepath in repository_diff.new_version_filelist:
                 return filepath
+
+        # check if symlink
+        fullpath = os.path.join(repository_diff.repo_path, repo_f)
+        if os.path.islink(fullpath):
+            target_link = os.path.realpath(os.path.join(fullpath, os.readlink(fullpath)))
+            repo_f = os.path.relpath(target_link, os.path.realpath(repository_diff.repo_path))
 
         return repo_f
 
-    def _process_phantom_files(self, registry_diff, repo_file_list):
+    def _process_phantom_files(self, registry_diff, repository_diff):
         """
         Phantom files: Files that are present in the registry,
                         but not in the source repository
@@ -125,13 +134,13 @@ class CodeReviewAnalysis:
         but have been removed in the new version
         """
         for f in registry_diff.new_version_filelist:
-            repo_f = self.get_repo_path_from_registry_path(f, repo_file_list)
-            if repo_f not in repo_file_list:
+            repo_f = self.get_repo_path_from_registry_path(f, repository_diff)
+            if repo_f not in repository_diff.new_version_filelist:
                 self.phantom_files.add(f)
 
         for f in registry_diff.diff.keys():
-            repo_f = self.get_repo_path_from_registry_path(f, repo_file_list)
-            if not registry_diff.diff[f].target_file and repo_f in repo_file_list:
+            repo_f = self.get_repo_path_from_registry_path(f, repository_diff)
+            if not registry_diff.diff[f].target_file and repo_f in repository_diff.new_version_filelist:
                 self.removed_files_in_registry[f] = registry_diff.diff[f]
 
     def _get_phantom_lines_in_a_file(self, registry_file_diff, repo_file_diff):
@@ -177,7 +186,7 @@ class CodeReviewAnalysis:
             if not registry_diff.diff[f].target_file:
                 continue
 
-            repo_f = self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)
+            repo_f = self.get_repo_path_from_registry_path(f, repository_diff)
 
             if (
                 not registry_diff.diff[f].source_file
@@ -248,7 +257,7 @@ class CodeReviewAnalysis:
         if repository_diff.new_version_subdir != self.directory:
             self.directory = repository_diff.new_version_subdir
 
-        self._process_phantom_files(registry_diff, repository_diff.new_version_file_list)
+        self._process_phantom_files(registry_diff, repository_diff)
         self._filter_out_phantom_files(registry_diff)
 
         phantom_lines_processed = False
@@ -262,12 +271,10 @@ class CodeReviewAnalysis:
         self.map_commit_to_removed_lines(repository_diff, registry_diff)
 
         for f in registry_diff.diff.keys():
-            repo_files = [self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)]
+            repo_files = [self.get_repo_path_from_registry_path(f, repository_diff)]
             if registry_diff.diff[f].is_rename:
                 repo_files += [
-                    self.get_repo_path_from_registry_path(
-                        registry_diff.diff[f].source_file, repository_diff.new_version_file_list
-                    )
+                    self.get_repo_path_from_registry_path(registry_diff.diff[f].source_file, repository_diff)
                 ]
             for repo_f in repo_files:
                 if repo_f in repository_diff.diff.keys():
@@ -300,7 +307,7 @@ class CodeReviewAnalysis:
                 files_with_added_lines.add(registry_diff.diff[f].target_file)
 
         for f in files_with_added_lines:
-            repo_f = self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)
+            repo_f = self.get_repo_path_from_registry_path(f, repository_diff)
 
             # ignore files with only phantom line changes
             if f in self.phantom_lines.keys() and repo_f not in repository_diff.diff.keys():
@@ -351,7 +358,7 @@ class CodeReviewAnalysis:
         repo.git.checkout(repository_diff.common_ancestor_commit_new_and_old_version, force=True)
 
         for f in files_with_removed_lines:
-            repo_f = self.get_repo_path_from_registry_path(f, repository_diff.new_version_file_list)
+            repo_f = self.get_repo_path_from_registry_path(f, repository_diff)
 
             # file may not be in version diff in repo
             # possible explanations:
