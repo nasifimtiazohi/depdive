@@ -1031,3 +1031,15 @@ def test_code_review_x11_dl():
     assert stats.non_reviewed_lines == 4204
     assert stats.total_commit_count == 10
     assert stats.reviewed_commit_count == 1
+
+
+def test_temp():
+    ca = CodeReviewAnalysis(RUBYGEMS, "bundler-audit", "0.4.0", "0.5.0")
+    stats = ca.stats
+    assert stats.phantom_files == 0
+    assert stats.files_with_phantom_lines == 0
+    assert stats.phantom_lines == 0
+    assert stats.reviewed_lines == 100
+    assert stats.non_reviewed_lines == 4895
+    assert stats.total_commit_count == 23
+    assert stats.reviewed_commit_count == 6

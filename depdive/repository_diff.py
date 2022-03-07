@@ -278,16 +278,19 @@ class RepositoryDiff:
         try:
             repo.git.checkout(self.old_version_commit, force=True)
             repo.submodule_update(recursive=True)
+            self.submodule_paths += [x.path for x in repo.submodules]
         except:
             pass
         try:
             repo.git.checkout(self.new_version_commit, force=True)
             repo.submodule_update(recursive=True)
+            self.submodule_paths += [x.path for x in repo.submodules]
         except:
             pass
+
         repo.git.checkout(head, force=True)
 
-        self.submodule_paths = [x.path for x in repo.submodules]
+        self.submodule_paths = list(set(self.submodule_paths))
 
     def build_repository_diff(self):
         if not self.repo_path:
