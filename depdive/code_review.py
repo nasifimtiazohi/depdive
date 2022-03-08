@@ -288,7 +288,7 @@ class CodeReviewAnalysis:
     def map_commit_to_added_lines(self, repository_diff, registry_diff):
         def map_submdule_to_added_lines(f, repo_f):
             for path in repository_diff.submodule_paths:
-                if "{}/".format(path) in repo_f:
+                if repo_f.startswith("{}/".format(path)):
                     commits = sort_commits_by_commit_date(
                         repository_diff.repo_path, list(repository_diff.diff[repo_f].commits)
                     )
@@ -331,7 +331,7 @@ class CodeReviewAnalysis:
     def map_commit_to_removed_lines(self, repository_diff, registry_diff):
         def map_submdule_to_removed_lines(f, repo_f):
             for path in repository_diff.submodule_paths:
-                if "{}/".format(path) in repo_f:
+                if repo_f.startswith("{}/".format(path)):
                     commits = sort_commits_by_commit_date(
                         repository_diff.repo_path, list(repository_diff.diff[repo_f].commits)
                     )
