@@ -32,32 +32,30 @@ DepDive
    
   
 
-Each time you accept a dependency update, you are pulling in new third-party code. However, how to ensure that the update is secure? 
+Each time you accept a dependency update, you are pulling in new third-party code. But how to ensure the update is secure? 
 
-One way to put a security (and quality) control check before accepting an update is to check what part of the code changes have passed through a code review process. DepDive automates this check.
+One way to put a security (and quality) check is to verify if changes in the update have passed through a code review process. DepDive automates this check.
 
 
 Workflow
 --------
 
-DepDive maps code changes between two versions of a package uploaded in the registry to the corresponding commits that made these changes in the package's 
-source code repository. DepDive then identifies if there was a code reviewer for the mapped commits through rule-based checks for evidences of code review on GitHub.
+DepDive maps code changes between two versions of a package uploaded in the registry to the corresponding commits in the repository that made these changes. DepDive then identifies if there was a code reviewer for the mapped commits through rule-based checks for evidence on GitHub.
 
-Along the process, DepDive also outputs phantom artifacts, that is, files and lines that are present in the registry, but not present in the repository. Example of phantom files can be compiles binaries in PyPI packages, transpiled JavaScript in npm, and other auto-generated files. Not to mention, malicious actors can sneak in code in the last mile between the repository and the registry. 
+Along the process, DepDive also outputs phantom artifacts: files and lines that are present in the registry but not present in the repository. Examples of phantom files can be compiled binaries in PyPI packages, transpiled JavaScript in npm, and other auto-generated files. Files that are ignored in the repository (through `.gitignore` file) may also appear in the registry code as phantom files. Without provenance tracking, DepDive cannot audit if changes in these phantom artifacts were code-reviewed or not. However, you should carefully review these phantoms before accepting an update. The *last mile* between the repository and the registry has been used as an attack vector in the past to inject malicious code in an update. 
 
-DepDive works for four package registries: (1) Crates.io (Rust), (2) npm (JavaScript), (3) PyPI (Python), (4) RubyGems (Ruby).
-Currently, DepDive only works for GitHub repositories, as GitHub is our primary source to check for code-review. 
-
+DepDive works for four package registries: (1) Crates.io (Rust), (2) npm (JavaScript), (3) PyPI (Python), and (4) RubyGems (Ruby).
+Currently, DepDive only works for GitHub repositories, as GitHub is our primary source to check for code review. 
 
 .. image:: docs/images/depdive.drawio.png
 
 Features
 --------
 
-* Outputs changes that have been code reviewed and that have not in a depednency update. You can calculate the code reviewe coverage from the output by diving the revewed lines of code changes by the total lines of code of changes in an update.
-* Outputs the reviewed and non-reviewed commits, and how we determined if a commit was code-reviewed, and the actors involved in the review.
-* Outputs files that are present in the update version downloaded from the registry, but not in the repository.
-* Updates lines of code changes that are present in the udpate, but cannot be mapped to changes in the repository.
+* Outputs changes that have been code reviewed (and that have not) in a dependency update.
+* Outputs the reviewed and the non-reviewed commits, how we determined if a commit was code-reviewed, and the actors involved in the review.
+* Outputs files present in the update version downloaded from the registry, but not in the repository.
+* Outputs code changes that are present in the udpate, but not present in the changes in the repository.
 
 
 Installation
@@ -118,7 +116,7 @@ Usage
 Future Work
 ------------
 
-* Also provides quality of the code review (e.g. what is the relation between the author and the reviewer? Was a sock account used to bypass code review check?)
+* Provide a quality rating for the code review. For example, what is the relation between the author and the reviewer? Was a sock account used to bypass the code review check?
 * What other checks should we perform for an update?
 
 Credits
