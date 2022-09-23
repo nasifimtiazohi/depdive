@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DepDive &mdash; depdive 0.0.41 documentation</title>
+  <title>Depdive &mdash; depdive 0.0.41 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/custom_cookietemple.css" type="text/css" />
@@ -17,13 +17,14 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/dark_mode_js/default_dark.js"></script>
         <script src="_static/dark_mode_js/theme_switcher.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="DepDive" href="readme.html" /> 
+    <link rel="next" title="Depdive" href="readme.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,7 +47,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">DepDive</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Depdive</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference.html">Reference</a></li>
@@ -69,7 +70,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
-      <li>DepDive</li>
+      <li>Depdive</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -80,37 +81,36 @@
            <div itemprop="articleBody">
              
   <section id="depdive">
-<h1>DepDive<a class="headerlink" href="#depdive" title="Permalink to this headline"></a></h1>
+<h1>Depdive<a class="headerlink" href="#depdive" title="Permalink to this heading"></a></h1>
 <p><a class="reference external" href="https://pypi.org/project/depdive/"><img alt="PyPI" src="https://img.shields.io/pypi/v/depdive.svg" /></a> <a class="reference external" href="https://pypi.org/project/depdive"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/depdive" /></a> <a class="reference external" href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/github/license/nasifimtiazohi/depdive" /></a> <a class="reference external" href="https://depdive.readthedocs.io/"><img alt="Read the documentation at https://depdive.readthedocs.io/" src="https://img.shields.io/readthedocs/depdive/latest.svg?label=Read%20the%20Docs" /></a> <a class="reference external" href="https://github.com/nasifimtiazohi/depdive/actions?workflow=Package"><img alt="Build Package Status" src="https://github.com/nasifimtiazohi/depdive/workflows/Build%20depdive%20Package/badge.svg" /></a> <a class="reference external" href="https://github.com/nasifimtiazohi/depdive/actions?workflow=Tests"><img alt="Run Tests Status" src="https://github.com/nasifimtiazohi/depdive/workflows/Run%20depdive%20Tests/badge.svg" /></a> <a class="reference external" href="https://codecov.io/gh/nasifimtiazohi/depdive"><img alt="Codecov" src="https://codecov.io/gh/nasifimtiazohi/depdive/branch/master/graph/badge.svg" /></a> <a class="reference external" href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a> <a class="reference external" href="https://github.com/psf/black"><img alt="Black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a></p>
-<p>Each time you accept a dependency update, you are pulling in new third-party code. However, how to ensure that the update is secure?</p>
-<p>One way to put a security (and quality) control check before accepting an update is to check what part of the code changes have passed through a code review process. DepDive automates this check.</p>
+<p>Each time you accept a dependency update, you are pulling in new third-party code. However, how to ensure the update is secure?</p>
+<p>One way to put a security (and quality) control check before accepting an update is to check what part of the code changes has passed through a code review process. DepDive automates this check.</p>
 <section id="workflow">
-<h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline"></a></h2>
-<p>DepDive maps code changes between two versions of a package uploaded in the registry to the corresponding commits that made these changes in the package’s
-source code repository. DepDive then identifies if there was a code reviewer for the mapped commits through rule-based checks for evidence of code review on GitHub.</p>
-<p>Along the process, DepDive also outputs phantom artifacts: files and lines that are present in the registry but not present in the repository. Examples of phantom files can be compiles binaries in PyPI packages, transpiled JavaScript in npm, and other auto-generated files. Not to mention, malicious actors can sneak in code in the last mile between the repository and the registry.</p>
-<p>DepDive works for four package registries: (1) Crates.io (Rust), (2) npm (JavaScript), (3) PyPI (Python), (4) RubyGems (Ruby).
-Currently, DepDive only works for GitHub repositories, as GitHub is our primary source to check for code review.</p>
+<h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this heading"></a></h2>
+<p>Depdive maps code changes between two versions of a package uploaded in the registry to the corresponding commits that made these changes in the source repository. Depdive then identifies if there was a reviewer for the mapped commit(s) through rule-based checks for evidence of code review on GitHub.</p>
+<p>Along the process, Depdive also outputs phantom artifacts: files and lines that are present in the registry but not present in the repository. Examples of phantom files can be compiled binaries in PyPI packages, transpiled JavaScript in npm, and other auto-generated files. Not to mention, malicious actors can sneak in code in the last mile between the repository and the registry.</p>
+<p>Depdive works for four package registries: (1) Crates.io (Rust), (2) npm (JavaScript), (3) PyPI (Python), and (4) RubyGems (Ruby).
+Currently, Depdive only works for GitHub repositories, as GitHub is our primary source to check for code review.</p>
 <img alt="docs/images/depdive.drawio.png" src="docs/images/depdive.drawio.png" />
 </section>
 <section id="features">
-<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline"></a></h2>
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
 <ul class="simple">
-<li><p>Outputs changes that have been code reviewed and not in a dependency update. You can calculate the code review coverage from the output by dividing the reviewed lines of code changes by the total lines of code of changes in an update.</p></li>
-<li><p>Outputs the reviewed and non-reviewed commits, and how we determined if a commit was code-reviewed, and the actors involved in the review.</p></li>
-<li><p>Outputs files present in the update version downloaded from the registry but not in the repository.</p></li>
-<li><p>Updates lines of code changes that are present in the udpate, but cannot be mapped to changes in the repository.</p></li>
+<li><p>Outputs changes that have (and have not) been code reviewed in a dependency update. You can calculate the code review coverage from the output by dividing the reviewed lines by the total lines of code changes in an update.</p></li>
+<li><p>Outputs the reviewed and non-reviewed commits. Also outputs how we determined if a commit was code-reviewed, and the actors involved in the review.</p></li>
+<li><p>Outputs files present in the update version downloaded from the registry but not in the source repository, ie phantom files.</p></li>
+<li><p>Outputs code changes that are present in the udpate, but cannot be mapped to changes in the repository, ie phantom lines.</p></li>
 </ul>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <p>You can install <em>depdive</em> via <a class="reference external" href="https://pip.pypa.io/">pip</a> from <a class="reference external" href="https://pypi.org/">PyPI</a>:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip install depdive
 </pre></div>
 </div>
 </section>
 <section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h2>
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ca</span> <span class="o">=</span> <span class="n">CodeReviewAnalysis</span><span class="p">(</span><span class="n">CARGO</span><span class="p">,</span> <span class="s2">&quot;tokio&quot;</span><span class="p">,</span> <span class="s2">&quot;1.8.4&quot;</span><span class="p">,</span> <span class="s2">&quot;1.9.0&quot;</span><span class="p">)</span>
 <span class="n">stats</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">stats</span>
 <span class="k">assert</span> <span class="n">stats</span><span class="o">.</span><span class="n">phantom_files</span> <span class="o">==</span> <span class="mi">0</span>
@@ -154,19 +154,19 @@ Currently, DepDive only works for GitHub repositories, as GitHub is our primary 
 </div>
 </section>
 <section id="future-work">
-<h2>Future Work<a class="headerlink" href="#future-work" title="Permalink to this headline"></a></h2>
+<h2>Future Work<a class="headerlink" href="#future-work" title="Permalink to this heading"></a></h2>
 <ul class="simple">
-<li><p>Also provides the code review quality (e.g., what is the relation between the author and the reviewer? Was a sock account used to bypass the code review check?)</p></li>
+<li><p>Also provide the quality of the code review(s), e.g., what is the relation between the author and the reviewer? Was a sock account used to bypass the code review check?</p></li>
 <li><p>What other checks should we perform for an update?</p></li>
 </ul>
 </section>
 <section id="credits">
-<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline"></a></h2>
+<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this heading"></a></h2>
 <p>This package was created with <a class="reference external" href="https://cookietemple.com">cookietemple</a> using <a class="reference external" href="https://github.com/audreyr/cookiecutter">Cookiecutter</a> based on <a class="reference external" href="https://github.com/cjolowicz/cookiecutter-hypermodern-python">Hypermodern_Python_Cookiecutter</a>.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">DepDive</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Depdive</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="readme.html#workflow">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="readme.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="readme.html#installation">Installation</a></li>
@@ -209,7 +209,7 @@ Currently, DepDive only works for GitHub repositories, as GitHub is our primary 
 </section>
 </section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h1>
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
@@ -221,7 +221,7 @@ Currently, DepDive only works for GitHub repositories, as GitHub is our primary 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="readme.html" class="btn btn-neutral float-right" title="DepDive" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="readme.html" class="btn btn-neutral float-right" title="Depdive" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
