@@ -34,7 +34,7 @@ Depdive
 
 Each time you accept a dependency update, you are pulling in new third-party code. However, how to ensure the update is secure? 
 
-One way to put a security (and quality) control check before accepting an update is to check what part of the code changes has passed through a code review process. DepDive automates this check.
+One way to put a security (and quality) control check before accepting an update is to check what part of the code changes has passed through a code review process. Depdive automates this check.
 
 
 Workflow
